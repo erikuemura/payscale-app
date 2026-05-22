@@ -26,7 +26,8 @@ const alertas = [
 ];
 const axisStyle = { fontSize: 10, fill: "#8896a8" };
 const grid = { strokeDasharray: "3 3", stroke: "#f1f5f9" };
-const ttStyle = { contentStyle: { background: "#fff", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: number) => [`${v}%`] };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ttStyle = { contentStyle: { background: "#fff", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
 
 export default function TarifasPage() {
   const total = alertas.reduce((s, a) => s + a.impacto, 0);
