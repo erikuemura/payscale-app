@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   ArrowRight, CheckCircle, ChevronRight, Menu, X,
   Zap, Shield, TrendingUp, Bell, FileBarChart2, RefreshCw,
-  Star,
+  Star, LayoutDashboard,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 /* ── data ── */
 const NAV = [
@@ -193,6 +194,14 @@ const TESTIMONIALS = [
 /* ── page ── */
 export default function SitePage() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = loading
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
@@ -218,13 +227,23 @@ export default function SitePage() {
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link href="/login" className="text-sm font-medium transition-colors hover:text-blue-600"
-              style={{ color: "#4a5568" }}>Entrar</Link>
-            <Link href="/login"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
-              style={{ background: "#2563eb" }}>
-              Começar grátis <ArrowRight size={14} />
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: "#2563eb" }}>
+                <LayoutDashboard size={14} /> Acessar painel
+              </Link>
+            ) : (
+              <>
+                <Link href="/" className="text-sm font-medium transition-colors hover:text-blue-600"
+                  style={{ color: "#4a5568" }}>Entrar</Link>
+                <Link href="/signup"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+                  style={{ background: "#2563eb" }}>
+                  Começar grátis <ArrowRight size={14} />
+                </Link>
+              </>
+            )}
           </div>
 
           <button className="md:hidden p-2 rounded-lg" style={{ color: "#4a5568" }}
@@ -243,11 +262,21 @@ export default function SitePage() {
                 style={{ color: "#4a5568", borderColor: "#f1f5f9" }}>{n.label}</a>
             ))}
             <div className="pt-4 flex flex-col gap-3">
-              <Link href="/login" className="py-3 text-sm font-medium text-center rounded-lg"
-                style={{ border: "1px solid #e2e8f0", color: "#4a5568" }}>Entrar</Link>
-              <Link href="/login"
-                className="py-3 rounded-lg text-sm font-bold text-white text-center"
-                style={{ background: "#2563eb" }}>Começar grátis — 14 dias</Link>
+              {isLoggedIn ? (
+                <Link href="/dashboard"
+                  className="py-3 rounded-lg text-sm font-bold text-white text-center flex items-center justify-center gap-2"
+                  style={{ background: "#2563eb" }}>
+                  <LayoutDashboard size={14} /> Acessar painel
+                </Link>
+              ) : (
+                <>
+                  <Link href="/" className="py-3 text-sm font-medium text-center rounded-lg"
+                    style={{ border: "1px solid #e2e8f0", color: "#4a5568" }}>Entrar</Link>
+                  <Link href="/signup"
+                    className="py-3 rounded-lg text-sm font-bold text-white text-center"
+                    style={{ background: "#2563eb" }}>Começar grátis — 14 dias</Link>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -287,11 +316,19 @@ export default function SitePage() {
 
           {/* CTAs — stack on mobile */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 px-0">
-            <Link href="/login"
-              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
-              style={{ background: "linear-gradient(135deg,#2563eb,#1d4ed8)", boxShadow: "0 0 0 1px rgba(255,255,255,0.1),0 8px 32px rgba(37,99,235,0.4)" }}>
-              Começar grátis — 14 dias <ArrowRight size={15} />
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#2563eb,#1d4ed8)", boxShadow: "0 0 0 1px rgba(255,255,255,0.1),0 8px 32px rgba(37,99,235,0.4)" }}>
+                <LayoutDashboard size={15} /> Acessar meu painel
+              </Link>
+            ) : (
+              <Link href="/signup"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#2563eb,#1d4ed8)", boxShadow: "0 0 0 1px rgba(255,255,255,0.1),0 8px 32px rgba(37,99,235,0.4)" }}>
+                Começar grátis — 14 dias <ArrowRight size={15} />
+              </Link>
+            )}
             <a href="#funcionalidades"
               className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold transition-all hover:bg-white/10"
               style={{ border: "1px solid rgba(255,255,255,0.18)", color: "#e2e8f0" }}>
@@ -557,14 +594,15 @@ export default function SitePage() {
                     </div>
                   )}
 
-                  <Link href="/login"
+                  <Link
+                    href={isLoggedIn ? "/dashboard" : p.name === "Enterprise" ? "mailto:contato@payscale.com.br" : "/signup"}
                     className="block w-full py-3 rounded-xl text-sm font-bold text-center transition-all hover:opacity-90 mb-6 sm:mb-7"
                     style={{
                       background: p.highlight ? "#2563eb" : "#f7f9fc",
                       color:      p.highlight ? "#fff"    : "#1a202c",
                       border:     p.highlight ? "none"    : "1px solid #e2e8f0",
                     }}>
-                    {p.cta}
+                    {isLoggedIn && p.name !== "Enterprise" ? "Acessar painel" : p.cta}
                   </Link>
 
                   <ul className="space-y-3">
@@ -599,11 +637,19 @@ export default function SitePage() {
             em cobranças indevidas. O PayScale Intelligence se paga — e sobra.
           </p>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-            <Link href="/login"
-              className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
-              style={{ background: "linear-gradient(135deg,#2563eb,#1d4ed8)", boxShadow: "0 0 0 1px rgba(255,255,255,0.1),0 8px 32px rgba(37,99,235,0.4)" }}>
-              Começar grátis — 14 dias <ArrowRight size={15} />
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard"
+                className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#2563eb,#1d4ed8)", boxShadow: "0 0 0 1px rgba(255,255,255,0.1),0 8px 32px rgba(37,99,235,0.4)" }}>
+                <LayoutDashboard size={15} /> Acessar meu painel
+              </Link>
+            ) : (
+              <Link href="/signup"
+                className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg,#2563eb,#1d4ed8)", boxShadow: "0 0 0 1px rgba(255,255,255,0.1),0 8px 32px rgba(37,99,235,0.4)" }}>
+                Começar grátis — 14 dias <ArrowRight size={15} />
+              </Link>
+            )}
             <a href="mailto:contato@payscale.com.br"
               className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all hover:bg-white/10"
               style={{ border: "1px solid rgba(255,255,255,0.2)", color: "#e2e8f0" }}>

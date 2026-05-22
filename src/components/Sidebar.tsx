@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useSidebar } from "@/context/SidebarContext";
 import {
   LayoutDashboard, Link2, ArrowLeftRight, Percent,
-  ShieldAlert, BarChart3, Zap, Settings, LogOut, X,
+  ShieldAlert, BarChart3, Zap, Settings, LogOut, X, Globe,
 } from "lucide-react";
 
 const nav = [
@@ -71,6 +71,11 @@ export default function Sidebar() {
 
       {/* Bottom */}
       <div className="px-3 pb-4 space-y-0.5" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+        <Link href="/site"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+          style={{ color: "var(--text-2)" }}>
+          <Globe size={16} strokeWidth={1.8} /> Site institucional
+        </Link>
         <Link href="#"
           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
           style={{ color: "var(--text-2)" }}>
