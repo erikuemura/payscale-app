@@ -97,40 +97,72 @@ export default function SignupPage() {
     if (!segment)            { setError("Selecione o segmento da sua empresa.");       return; }
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    try {
+      // 1ª tentativa: rota server-side (não envia e-mail, sem rate limit)
+      const res  = await fetch("/api/auth/signup", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({
+          email, password,
           full_name:   name,
           person_type: personType,
           segment,
           company: personType === "pj" ? name : null,
+        }),
+      });
+      const json = await res.json();
+
+      if (json.ok && json.access_token) {
+        // Seta a sessão no browser e redireciona
+        await supabase.auth.setSession({
+          access_token:  json.access_token,
+          refresh_token: json.refresh_token,
+        });
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      if (json.ok && json.redirect) {
+        router.push(json.redirect);
+        return;
+      }
+
+      // Rota server retornou erro não-500 → mostra pro usuário
+      if (res.status !== 500 && json.error) {
+        setError(json.error);
+        setLoading(false);
+        return;
+      }
+
+      // 2ª tentativa: fluxo normal do Supabase (fallback)
+      throw new Error("fallback");
+
+    } catch {
+      // Fallback: signUp padrão (com e-mail)
+      const { error } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          data: { full_name: name, person_type: personType, segment, company: personType === "pj" ? name : null },
+          emailRedirectTo: `${location.origin}/auth/callback`,
         },
-        emailRedirectTo: `${location.origin}/auth/callback`,
-      },
-    });
+      });
 
-    setLoading(false);
-    if (error) {
-      setError(
-        error.message.includes("already registered")
-          ? "Este e-mail já está cadastrado. Faça login."
-          : error.message.includes("rate limit")
-          ? "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente."
-          : error.message
-      );
-      return;
-    }
+      setLoading(false);
+      if (error) {
+        setError(
+          error.message.includes("already registered")
+            ? "Este e-mail já está cadastrado. Faça login."
+            : error.message.includes("rate limit") || error.message.includes("email")
+            ? "Limite de e-mails atingido. Tente entrar com Google ou aguarde alguns minutos."
+            : error.message
+        );
+        return;
+      }
 
-    // Se confirmação de e-mail desativada → session já existe → vai pro dashboard
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      router.push("/dashboard");
-      router.refresh();
-    } else {
-      // Confirmação ativa → mostra tela de "verifique seu e-mail"
-      setDone(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) { router.push("/dashboard"); router.refresh(); }
+      else setDone(true);
     }
   }
 
