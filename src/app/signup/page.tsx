@@ -6,6 +6,7 @@ import {
   Building2, User, Zap,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 /* ── Segmentos ── */
 const SEGMENTS = [
@@ -61,6 +62,7 @@ function PasswordStrength({ pwd }: { pwd: string }) {
 
 export default function SignupPage() {
   const supabase = createClient();
+  const router   = useRouter();
 
   const [personType, setPersonType] = useState<"pj" | "pf">("pj");
   const [name,     setName]     = useState("");
@@ -114,11 +116,22 @@ export default function SignupPage() {
       setError(
         error.message.includes("already registered")
           ? "Este e-mail já está cadastrado. Faça login."
+          : error.message.includes("rate limit")
+          ? "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente."
           : error.message
       );
       return;
     }
-    setDone(true);
+
+    // Se confirmação de e-mail desativada → session já existe → vai pro dashboard
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      router.push("/dashboard");
+      router.refresh();
+    } else {
+      // Confirmação ativa → mostra tela de "verifique seu e-mail"
+      setDone(true);
+    }
   }
 
   /* ── Confirmação enviada ── */
