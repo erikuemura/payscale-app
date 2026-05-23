@@ -1,6 +1,59 @@
 "use client";
+import { useState } from "react";
 import Topbar from "@/components/Topbar";
 import { Download, FileText, TrendingUp, AlertTriangle, ShieldAlert, BarChart3, Mail } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
+
+/* ── Gerador de CSV mock ── */
+function buildCSV(id: string, month: string): string {
+  const bom = "﻿";
+  if (id === "conciliacao") {
+    const header = "ID;Data;Descrição;Adquirente;Tipo;Valor Bruto;Tarifa;Líquido;Status";
+    const rows = [
+      `TRX-001;03/${month.slice(-2)}/2026;Venda Débito;PagSeguro;débito;1200,00;14,40;1185,60;Conciliado`,
+      `TRX-002;05/${month.slice(-2)}/2026;Venda Crédito 1x;Mercado Pago;crédito;850,00;21,25;828,75;Conciliado`,
+      `TRX-003;08/${month.slice(-2)}/2026;Venda PIX;PagSeguro;pix;620,00;6,14;613,86;Pendente`,
+    ];
+    return bom + [header, ...rows].join("\n");
+  }
+  if (id === "mdr") {
+    const header = "Modalidade;MDR Contratado (%);MDR Cobrado (%);Desvio (%);Status";
+    const rows = [
+      "Débito;1,20;1,20;0,00;OK",
+      "Crédito 1x;2,50;2,50;0,00;OK",
+      "Crédito 2x;2,80;3,10;0,30;Indevida",
+      "Crédito 12x;3,80;4,10;0,30;Indevida",
+      "PIX;0,99;0,99;0,00;OK",
+    ];
+    return bom + [header, ...rows].join("\n");
+  }
+  if (id === "chargebacks") {
+    const header = "ID;Data;Cliente;Adquirente;Motivo;Valor;Status";
+    const rows = [
+      "CB-001;20/05/2026;Carlos M. Santos;Mercado Pago;Não reconhece a compra;450,00;Aberto",
+      "CB-002;18/05/2026;Ana Paula Lima;PagSeguro;Produto não entregue;1200,00;Contestado",
+      "CB-003;15/05/2026;João R. Costa;Mercado Pago;Cobrança duplicada;380,00;Ganho",
+    ];
+    return bom + [header, ...rows].join("\n");
+  }
+  // saude
+  const header = "Semana;Volume Total;Receita Líquida;MDR Efetivo (%)";
+  const rows = [
+    "Semana 18;120400,00;116300,00;3,41",
+    "Semana 19;98700,00;95200,00;3,54",
+    "Semana 20;134200,00;129800,00;3,28",
+  ];
+  return bom + [header, ...rows].join("\n");
+}
+
+function downloadCSV(id: string, month: string, filename: string) {
+  const csv  = buildCSV(id, month);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
 
 const types = [
   {id:"conciliacao",title:"Relatório de Conciliação",     desc:"Transações, divergências e valores pendentes de liquidação.",           icon:<TrendingUp size={16}/>, color:"var(--blue)",  ultima:"22/05/2026",tipo:"Mensal"},
@@ -18,6 +71,22 @@ const hist = [
 ];
 
 export default function RelatoriosPage() {
+  const { toast } = useToast();
+
+  const [months, setMonths] = useState<Record<string, string>>({
+    conciliacao: "Maio 2026",
+    mdr:         "Maio 2026",
+    chargebacks: "Maio 2026",
+    saude:       "Maio 2026",
+  });
+
+  function handleExport(id: string, title: string) {
+    const month = months[id] ?? "Maio 2026";
+    const slug  = month.toLowerCase().replace(" ", "_");
+    downloadCSV(id, month, `${id}_${slug}.csv`);
+    toast(`${title} exportado com sucesso!`);
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar title="Relatórios" subtitle="Gere e exporte relatórios financeiros completos"/>
@@ -40,10 +109,16 @@ export default function RelatoriosPage() {
                   <p className="text-xs" style={{color:"var(--muted)"}}>Último: {r.ultima}</p>
                   <span className="badge badge-blue">{r.tipo}</span>
                   <div className="flex gap-2 ml-auto">
-                    <select className="input-base text-xs py-1.5 pl-2 pr-7" style={{width:"auto",color:"var(--text-2)"}}>
+                    <select
+                      className="input-base text-xs py-1.5 pl-2 pr-7"
+                      style={{width:"auto",color:"var(--text-2)"}}
+                      value={months[r.id]}
+                      onChange={e => setMonths(prev => ({ ...prev, [r.id]: e.target.value }))}>
                       <option>Maio 2026</option><option>Abril 2026</option><option>Março 2026</option>
                     </select>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
+                    <button
+                      onClick={() => handleExport(r.id, r.title)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
                       style={{background:"var(--blue)",color:"#fff"}}>
                       <Download size={12}/>Exportar
                     </button>
@@ -79,7 +154,18 @@ export default function RelatoriosPage() {
                       <td className="px-5 py-3 whitespace-nowrap" style={{color:"var(--muted)"}}>{r.date}</td>
                       <td className="px-5 py-3" style={{color:"var(--muted)"}}>{r.size}</td>
                       <td className="px-5 py-3">
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-50 transition-all"
+                        <button
+                          onClick={() => {
+                            const id = r.name.toLowerCase().includes("concilia") ? "conciliacao"
+                              : r.name.toLowerCase().includes("mdr") ? "mdr"
+                              : r.name.toLowerCase().includes("chargeback") ? "chargebacks"
+                              : "saude";
+                            const month = r.name.match(/— (.+)$/)?.[1] ?? "Maio 2026";
+                            const slug  = month.toLowerCase().replace(" ", "_").replace("/","_");
+                            downloadCSV(id, month, `${id}_${slug}.csv`);
+                            toast(`${r.name} baixado!`);
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-50 transition-all"
                           style={{border:"1px solid var(--border)",color:"var(--blue)"}}>
                           <Download size={12}/>Baixar
                         </button>

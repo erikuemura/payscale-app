@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useMemo } from "react";
 import Topbar from "@/components/Topbar";
-import { CheckCircle, AlertTriangle, XCircle, Search, Download, ArrowLeftRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Search, Download, ArrowLeftRight, ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 
 type RecStatus = "ok" | "divergencia" | "sem_liquidacao";
 
@@ -61,15 +61,43 @@ export default function ConciliacaoPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo,   setDateTo]   = useState("");
   const [page,     setPage]     = useState(1);
+  const [sortKey,  setSortKey]  = useState<keyof Transacao | null>(null);
+  const [sortDir,  setSortDir]  = useState<"asc" | "desc">("asc");
 
-  const filtered = useMemo(() => transacoes.filter(t => {
+  function handleSort(key: keyof Transacao) {
+    if (sortKey === key) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortKey(key); setSortDir("asc");
+    }
+    setPage(1);
+  }
+
+  function SortIcon({ col }: { col: keyof Transacao }) {
+    if (sortKey !== col) return <ChevronsUpDown size={11} className="inline ml-1 opacity-30" />;
+    return sortDir === "asc"
+      ? <ChevronUp size={11} className="inline ml-1" style={{ color: "var(--blue)" }} />
+      : <ChevronDown size={11} className="inline ml-1" style={{ color: "var(--blue)" }} />;
+  }
+
+  const filtered = useMemo(() => {
+    const base = transacoes.filter(t => {
     const matchStatus = filterStatus === "all" || t.status === filterStatus;
     const matchSearch = t.descricao.toLowerCase().includes(search.toLowerCase()) ||
                         t.id.toLowerCase().includes(search.toLowerCase());
-    const matchFrom   = !dateFrom || t.dataISO >= dateFrom;
-    const matchTo     = !dateTo   || t.dataISO <= dateTo;
-    return matchStatus && matchSearch && matchFrom && matchTo;
-  }), [filterStatus, search, dateFrom, dateTo]);
+      const matchFrom   = !dateFrom || t.dataISO >= dateFrom;
+      const matchTo     = !dateTo   || t.dataISO <= dateTo;
+      return matchStatus && matchSearch && matchFrom && matchTo;
+    });
+    if (!sortKey) return base;
+    return [...base].sort((a, b) => {
+      const av = a[sortKey]; const bv = b[sortKey];
+      const cmp = typeof av === "number" && typeof bv === "number"
+        ? av - bv
+        : String(av).localeCompare(String(bv), "pt-BR");
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filterStatus, search, dateFrom, dateTo, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage   = Math.min(page, totalPages);
@@ -160,8 +188,23 @@ export default function ConciliacaoPage() {
             <table className="w-full text-xs">
               <thead>
                 <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
-                  {["ID", "Data", "Descrição", "Adquirente", "Tipo", "Valor Bruto", "Tarifa", "Líquido", "Status"].map(h => (
-                    <th key={h} className="px-4 py-3 text-left font-semibold whitespace-nowrap" style={{ color: "var(--muted)" }}>{h}</th>
+                  {([
+                    { label: "ID",         key: "id"          },
+                    { label: "Data",       key: "dataISO"     },
+                    { label: "Descrição",  key: "descricao"   },
+                    { label: "Adquirente", key: "adquirente"  },
+                    { label: "Tipo",       key: "tipo"        },
+                    { label: "Valor Bruto",key: "valorBruto"  },
+                    { label: "Tarifa",     key: "tarifa"      },
+                    { label: "Líquido",    key: "valorLiquido"},
+                    { label: "Status",     key: "status"      },
+                  ] as { label: string; key: keyof Transacao }[]).map(h => (
+                    <th key={h.key}
+                      onClick={() => handleSort(h.key)}
+                      className="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer select-none hover:opacity-75 transition-opacity"
+                      style={{ color: sortKey === h.key ? "var(--blue)" : "var(--muted)" }}>
+                      {h.label}<SortIcon col={h.key} />
+                    </th>
                   ))}
                 </tr>
               </thead>

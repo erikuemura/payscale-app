@@ -5,6 +5,28 @@ import { useSearchParams } from "next/navigation";
 import { Zap, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+function PasswordStrength({ pwd }: { pwd: string }) {
+  if (!pwd) return null;
+  const score =
+    (pwd.length >= 8  ? 1 : 0) +
+    (pwd.length >= 12 ? 1 : 0) +
+    (/\d/.test(pwd)        ? 1 : 0) +
+    (/[a-zA-Z]/.test(pwd)  ? 1 : 0);
+  const colors = ["", "#dc2626", "#f59e0b", "#2563eb", "#059669"];
+  const labels = ["", "Fraca", "Regular", "Boa", "Forte"];
+  return (
+    <div style={{ marginTop: "0.5rem" }}>
+      <div style={{ display: "flex", gap: "0.25rem", marginBottom: "0.25rem" }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ height: 4, flex: 1, borderRadius: 99, transition: "background 0.3s",
+            background: i <= score ? colors[score] : "#e2e8f0" }} />
+        ))}
+      </div>
+      <p style={{ fontSize: 11, color: colors[score] }}>{labels[score]}</p>
+    </div>
+  );
+}
+
 /* ── Etapa 1: solicitar e-mail de reset ── */
 function RequestReset() {
   const [email, setEmail]     = useState("");
@@ -125,8 +147,8 @@ function UpdatePassword() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         {[
-          { label: "Nova senha",     value: password, set: setPassword, ac: "new-password"     },
-          { label: "Confirme a senha", value: confirm, set: setConfirm, ac: "new-password" },
+          { label: "Nova senha",       value: password, set: setPassword, ac: "new-password" },
+          { label: "Confirme a senha", value: confirm,  set: setConfirm,  ac: "new-password" },
         ].map(f => (
           <div key={f.label}>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>{f.label}</label>
@@ -140,6 +162,7 @@ function UpdatePassword() {
                 {show ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
+            {f.label === "Nova senha" && <PasswordStrength pwd={f.value} />}
           </div>
         ))}
         <button type="submit" disabled={loading}

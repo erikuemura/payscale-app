@@ -1,5 +1,7 @@
 import { SidebarProvider } from "@/context/SidebarContext";
-import Sidebar from "@/components/Sidebar";
+import { ToastProvider }   from "@/context/ToastContext";
+import Sidebar      from "@/components/Sidebar";
+import TrialBanner  from "@/components/TrialBanner";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -11,13 +13,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!user) redirect("/");
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
-        <Sidebar />
-        <div className="flex flex-col flex-1 min-w-0">
-          {children}
+    <ToastProvider>
+      <SidebarProvider>
+        <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
+          <Sidebar />
+          <div className="flex flex-col flex-1 min-w-0">
+            <TrialBanner />
+            {children}
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </ToastProvider>
   );
 }

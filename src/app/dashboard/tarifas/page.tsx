@@ -1,6 +1,25 @@
 "use client";
 import Topbar from "@/components/Topbar";
-import { AlertTriangle, CheckCircle, Bell } from "lucide-react";
+import { AlertTriangle, CheckCircle, Bell, Download } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
+
+function exportMDR(data: { m: string; c: number; r: number; d: number }[]) {
+  const bom    = "﻿";
+  const header = "Modalidade;MDR Contratado (%);MDR Cobrado (%);Desvio (%);Status";
+  const rows   = data.map(m => [
+    m.m,
+    m.c.toFixed(2).replace(".", ","),
+    m.r.toFixed(2).replace(".", ","),
+    m.d > 0 ? `+${m.d.toFixed(2).replace(".", ",")}` : "0,00",
+    m.d === 0 ? "OK" : "Indevida",
+  ].join(";"));
+  const csv  = bom + [header, ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = "auditoria_mdr_maio_2026.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
 
 const mdrData = [
@@ -30,6 +49,7 @@ const grid = { strokeDasharray: "3 3", stroke: "#f1f5f9" };
 const ttStyle = { contentStyle: { background: "#fff", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
 
 export default function TarifasPage() {
+  const { toast } = useToast();
   const total = alertas.reduce((s, a) => s + a.impacto, 0);
   return (
     <div className="flex flex-col min-h-screen">
@@ -117,8 +137,14 @@ export default function TarifasPage() {
 
         {/* Table */}
         <div className="card overflow-hidden">
-          <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
             <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Detalhamento por Modalidade</p>
+            <button
+              onClick={() => { exportMDR(mdrData); toast("Auditoria MDR exportada!"); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
+              style={{ background: "var(--blue)", color: "#fff" }}>
+              <Download size={12} /> Exportar CSV
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Topbar from "@/components/Topbar";
 import { createClient } from "@/lib/supabase/client";
 import { User, Lock, CreditCard, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
 
 type Tab = "perfil" | "senha" | "plano";
 
@@ -23,6 +24,7 @@ function daysLeft(date: Date | null): number {
 export default function ConfiguracoesPage() {
   const router   = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("perfil");
 
   /* ── Perfil ── */
@@ -85,10 +87,12 @@ export default function ConfiguracoesPage() {
 
     if (error) {
       setProfileMsg({ type: "err", text: "Erro ao salvar. Tente novamente." });
+      toast("Erro ao salvar o perfil.", "error");
     } else {
       // Atualiza também o user_metadata
       await supabase.auth.updateUser({ data: { full_name: name.trim() } });
       setProfileMsg({ type: "ok", text: "Perfil atualizado com sucesso!" });
+      toast("Perfil atualizado!");
     }
     setSaveLoading(false);
   }
@@ -125,8 +129,10 @@ export default function ConfiguracoesPage() {
     const { error } = await supabase.auth.updateUser({ password: newPwd });
     if (error) {
       setPwdMsg({ type: "err", text: "Erro ao alterar senha. Tente novamente." });
+      toast("Erro ao alterar a senha.", "error");
     } else {
       setPwdMsg({ type: "ok", text: "Senha alterada com sucesso!" });
+      toast("Senha alterada com sucesso!");
       setPwd(""); setNewPwd(""); setConfPwd("");
     }
     setPwdLoading(false);
