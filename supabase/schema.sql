@@ -8,22 +8,31 @@ create table if not exists public.profiles (
   id          uuid        primary key references auth.users (id) on delete cascade,
   full_name   text,
   company     text,
+  person_type text        not null default 'pj',      -- pf | pj
+  segment     text,                                    -- ecommerce | alimentacao | moda | ...
+  avatar_url  text,
   plan        text        not null default 'trial',   -- trial | starter | growth | enterprise
   trial_ends  timestamptz not null default now() + interval '14 days',
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
 
--- Trigger: cria perfil automaticamente ao criar usuário
+-- Trigger: cria perfil automaticamente ao criar usuário (email/senha ou OAuth)
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, full_name, company)
+  insert into public.profiles (id, full_name, company, person_type, segment, avatar_url)
   values (
     new.id,
-    new.raw_user_meta_data ->> 'full_name',
-    new.raw_user_meta_data ->> 'company'
+    coalesce(
+      new.raw_user_meta_data ->> 'full_name',
+      new.raw_user_meta_data ->> 'name'        -- Google OAuth usa 'name'
+    ),
+    new.raw_user_meta_data ->> 'company',
+    coalesce(new.raw_user_meta_data ->> 'person_type', 'pj'),
+    new.raw_user_meta_data ->> 'segment',
+    new.raw_user_meta_data ->> 'avatar_url'   -- Google OAuth preenche isso
   );
   return new;
 end;
