@@ -319,26 +319,29 @@ export default function SitePage() {
       </section>
 
       {/* ══ PROBLEM ══ */}
-      <section style={{ background: "#f7f9fc", paddingTop: "clamp(3.5rem,7vw,6rem)", paddingBottom: "clamp(3.5rem,7vw,6rem)" }}>
+      <section style={{ background: "#f7f9fc", paddingTop: "clamp(4rem,7vw,6rem)", paddingBottom: "clamp(4rem,7vw,6rem)" }}>
         <div style={wrap5}>
-          <div className="text-center" style={{ marginBottom: "clamp(2rem,5vw,3.5rem)" }}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#2563eb" }}>O Problema</p>
-            <h2 className="font-black tracking-tight" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c" }}>
+          <div className="text-center" style={{ marginBottom: "clamp(2.5rem,5vw,4rem)" }}>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#2563eb", marginBottom: "0.75rem" }}>O Problema</p>
+            <h2 className="font-black tracking-tight" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c", lineHeight: 1.15 }}>
               Seu dinheiro está escorregando<br className="hidden sm:block" /> por buracos invisíveis
             </h2>
-            <p className="mt-4 text-sm sm:text-base" style={{ color: "#64748b", ...wrapXL }}>
+            <p className="text-sm sm:text-base" style={{ color: "#64748b", ...wrapXL, marginTop: "1.25rem", lineHeight: 1.7 }}>
               Toda empresa que processa pagamentos eletrônicos convive com esses três
               problemas — e a maioria nem sabe.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PAINS.map(p => (
-              <div key={p.title} className="rounded-2xl p-6 sm:p-7"
-                style={{ background: "#fff", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
-                  style={{ background: "#fef2f2", color: "#dc2626" }}>{p.icon}</div>
-                <h3 className="text-sm sm:text-base font-bold mb-2" style={{ color: "#1a202c" }}>{p.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#64748b" }}>{p.desc}</p>
+              <div key={p.title}
+                style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "1rem", padding: "2rem", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div style={{ width: "3rem", height: "3rem", borderRadius: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center", background: "#fef2f2", color: "#dc2626", flexShrink: 0 }}>
+                  {p.icon}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a202c", marginBottom: "0.5rem" }}>{p.title}</h3>
+                  <p style={{ fontSize: "0.875rem", color: "#64748b", lineHeight: 1.75 }}>{p.desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -346,24 +349,25 @@ export default function SitePage() {
       </section>
 
       {/* ══ FEATURES ══ */}
-      <section id="funcionalidades" style={{ background: "#fff", paddingTop: "clamp(3.5rem,7vw,6rem)", paddingBottom: "clamp(3.5rem,7vw,6rem)" }}>
+      <section id="funcionalidades" style={{ background: "#fff", paddingTop: "clamp(4rem,7vw,6rem)", paddingBottom: "clamp(4rem,7vw,6rem)" }}>
         <div style={wrap5}>
-          <div className="text-center" style={{ marginBottom: "clamp(2rem,5vw,3.5rem)" }}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#2563eb" }}>Funcionalidades</p>
-            <h2 className="font-black tracking-tight" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c" }}>
+          <div className="text-center" style={{ marginBottom: "clamp(2.5rem,5vw,4rem)" }}>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#2563eb", marginBottom: "0.75rem" }}>Funcionalidades</p>
+            <h2 className="font-black tracking-tight" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c", lineHeight: 1.15 }}>
               Tudo que você precisa para<br className="hidden sm:block" /> controlar seus pagamentos
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {FEATURES.map(f => (
               <div key={f.id}
-                className={`rounded-2xl p-6 sm:p-7 flex flex-col gap-4 ${f.wide ? "md:col-span-2" : ""}`}
-                style={{ background: f.color + "08", border: `1px solid ${f.color}20` }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: f.color + "15", color: f.color }}>{f.icon}</div>
+                className={f.wide ? "md:col-span-2" : ""}
+                style={{ background: f.color + "07", border: `1px solid ${f.color}22`, borderRadius: "1rem", padding: "2rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                <div style={{ width: "3rem", height: "3rem", borderRadius: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: f.color + "18", color: f.color }}>
+                  {f.icon}
+                </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold mb-1.5" style={{ color: "#1a202c" }}>{f.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: "#64748b" }}>{f.desc}</p>
+                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#1a202c", marginBottom: "0.5rem" }}>{f.title}</h3>
+                  <p style={{ fontSize: "0.875rem", color: "#64748b", lineHeight: 1.75 }}>{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -438,27 +442,31 @@ export default function SitePage() {
       </section>
 
       {/* ══ TESTIMONIALS ══ */}
-      <section style={{ background: "#f7f9fc", paddingTop: "clamp(3.5rem,7vw,6rem)", paddingBottom: "clamp(3.5rem,7vw,6rem)" }}>
+      <section style={{ background: "#f7f9fc", paddingTop: "clamp(4rem,7vw,6rem)", paddingBottom: "clamp(4rem,7vw,6rem)" }}>
         <div style={wrap5}>
-          <div className="text-center" style={{ marginBottom: "clamp(2rem,5vw,3.5rem)" }}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#2563eb" }}>Resultados</p>
-            <h2 className="font-black tracking-tight" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c" }}>
+          <div className="text-center" style={{ marginBottom: "clamp(2.5rem,5vw,4rem)" }}>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#2563eb", marginBottom: "0.75rem" }}>Resultados</p>
+            <h2 className="font-black tracking-tight" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c", lineHeight: 1.15 }}>
               Empresas que já recuperaram o controle
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TESTIMONIALS.map(t => (
-              <div key={t.name} className="rounded-2xl p-6 sm:p-7"
-                style={{ background: "#fff", border: "1px solid #e2e8f0", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-                <div className="flex gap-0.5 mb-5">
-                  {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} size={13} fill="#f59e0b" style={{ color: "#f59e0b" }} />
-                  ))}
-                </div>
-                <p className="text-sm leading-relaxed mb-5" style={{ color: "#1a202c" }}>"{t.quote}"</p>
+              <div key={t.name}
+                style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "1rem", padding: "2rem", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "1.5rem" }}>
+                {/* Aspas decorativas */}
                 <div>
-                  <p className="text-xs font-bold" style={{ color: "#1a202c" }}>{t.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "#8896a8" }}>{t.role}</p>
+                  <div style={{ fontSize: "3rem", lineHeight: 1, color: "#2563eb", opacity: 0.15, fontFamily: "Georgia, serif", marginBottom: "-0.5rem" }}>"</div>
+                  <p style={{ fontSize: "0.9375rem", color: "#1e293b", lineHeight: 1.75 }}>{t.quote}</p>
+                </div>
+                <div>
+                  <div style={{ display: "flex", gap: "0.125rem", marginBottom: "0.75rem" }}>
+                    {Array.from({ length: t.stars }).map((_, i) => (
+                      <Star key={i} size={13} fill="#f59e0b" style={{ color: "#f59e0b" }} />
+                    ))}
+                  </div>
+                  <p style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#1a202c" }}>{t.name}</p>
+                  <p style={{ fontSize: "0.75rem", color: "#8896a8", marginTop: "0.125rem" }}>{t.role}</p>
                 </div>
               </div>
             ))}
@@ -467,11 +475,11 @@ export default function SitePage() {
       </section>
 
       {/* ══ PRICING ══ */}
-      <section id="precos" style={{ background: "#fff", paddingTop: "clamp(3.5rem,7vw,6rem)", paddingBottom: "clamp(3.5rem,7vw,6rem)" }}>
+      <section id="precos" style={{ background: "#fff", paddingTop: "clamp(4rem,7vw,6rem)", paddingBottom: "clamp(4rem,7vw,6rem)" }}>
         <div style={wrap5}>
-          <div className="text-center" style={{ marginBottom: "clamp(2rem,5vw,3.5rem)" }}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "#2563eb" }}>Preços</p>
-            <h2 className="font-black tracking-tight mb-4" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c" }}>
+          <div className="text-center" style={{ marginBottom: "clamp(2.5rem,5vw,4rem)" }}>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#2563eb", marginBottom: "0.75rem" }}>Preços</p>
+            <h2 className="font-black tracking-tight" style={{ fontSize: "clamp(1.5rem,4vw,2.5rem)", color: "#1a202c", lineHeight: 1.15, marginBottom: "1rem" }}>
               Transparente como deveriam<br className="hidden sm:block" /> ser suas tarifas
             </h2>
             <p className="text-sm sm:text-base" style={{ color: "#64748b" }}>
@@ -479,47 +487,54 @@ export default function SitePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 items-start" style={{ gap: "1.5rem" }}>
             {PLANS.map(p => (
               <div key={p.name}
-                className={`rounded-2xl overflow-hidden ${p.highlight ? "ring-2 ring-blue-500 shadow-xl shadow-blue-100" : ""}`}
-                style={{ border: p.highlight ? "none" : "1px solid #e2e8f0" }}>
+                style={{
+                  borderRadius: "1rem",
+                  overflow: "hidden",
+                  border: p.highlight ? "2px solid #2563eb" : "1px solid #e2e8f0",
+                  boxShadow: p.highlight ? "0 8px 32px rgba(37,99,235,0.15)" : "0 2px 8px rgba(0,0,0,0.04)",
+                }}>
                 {p.highlight && (
-                  <div className="py-2 text-center text-xs font-bold text-white" style={{ background: "#2563eb" }}>
+                  <div className="text-center text-xs font-bold text-white" style={{ background: "#2563eb", padding: "0.5rem" }}>
                     Mais popular
                   </div>
                 )}
-                <div className="p-6 sm:p-7">
-                  <p className="text-sm font-bold mb-1" style={{ color: "#1a202c" }}>{p.name}</p>
-                  <p className="text-xs mb-5 leading-snug" style={{ color: "#8896a8" }}>{p.desc}</p>
+                <div style={{ padding: "2rem" }}>
+                  <p style={{ fontSize: "1rem", fontWeight: 700, color: "#1a202c", marginBottom: "0.375rem" }}>{p.name}</p>
+                  <p style={{ fontSize: "0.8125rem", color: "#8896a8", lineHeight: 1.6, marginBottom: "1.5rem" }}>{p.desc}</p>
 
                   {p.price ? (
-                    <div className="flex items-end gap-1 mb-6">
-                      <span className="text-xs font-medium" style={{ color: "#8896a8" }}>R$</span>
-                      <span className="font-black" style={{ fontSize: "clamp(2rem,5vw,2.5rem)", color: "#1a202c" }}>{p.price}</span>
-                      <span className="text-xs mb-1" style={{ color: "#8896a8" }}>/mês</span>
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: "0.25rem", marginBottom: "1.5rem" }}>
+                      <span style={{ fontSize: "0.75rem", fontWeight: 500, color: "#8896a8", paddingBottom: "0.375rem" }}>R$</span>
+                      <span style={{ fontSize: "clamp(2rem,5vw,2.5rem)", fontWeight: 900, color: "#1a202c", lineHeight: 1 }}>{p.price}</span>
+                      <span style={{ fontSize: "0.75rem", color: "#8896a8", paddingBottom: "0.25rem" }}>/mês</span>
                     </div>
                   ) : (
-                    <div className="mb-6">
-                      <span className="text-2xl font-black" style={{ color: "#1a202c" }}>Sob consulta</span>
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "#1a202c" }}>Sob consulta</span>
                     </div>
                   )}
 
                   <Link
                     href={isLoggedIn ? "/dashboard" : p.name === "Enterprise" ? "mailto:contato@payscale.com.br" : "/signup"}
-                    className="block w-full py-3 rounded-xl text-sm font-bold text-center transition-all hover:opacity-90 mb-7"
+                    className="block text-center font-bold transition-all hover:opacity-90"
                     style={{
+                      display: "block", width: "100%", padding: "0.75rem",
+                      borderRadius: "0.75rem", fontSize: "0.875rem",
                       background: p.highlight ? "#2563eb" : "#f7f9fc",
                       color:      p.highlight ? "#fff"    : "#1a202c",
                       border:     p.highlight ? "none"    : "1px solid #e2e8f0",
+                      marginBottom: "1.75rem",
                     }}>
                     {isLoggedIn && p.name !== "Enterprise" ? "Acessar painel" : p.cta}
                   </Link>
 
-                  <ul className="space-y-3">
+                  <ul style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
                     {p.features.map(f => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm" style={{ color: "#4a5568" }}>
-                        <CheckCircle size={14} className="shrink-0 mt-0.5" style={{ color: "#059669" }} />
+                      <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "0.625rem", fontSize: "0.875rem", color: "#4a5568" }}>
+                        <CheckCircle size={14} style={{ color: "#059669", flexShrink: 0, marginTop: "0.1875rem" }} />
                         {f}
                       </li>
                     ))}

@@ -34,14 +34,16 @@
   --red-dim:   rgba(220,38,38,0.08);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  /* Reset dentro do @layer base para que @layer utilities sempre ganhe */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
