@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import Topbar from "@/components/Topbar";
-import { AlertTriangle, Clock, CheckCircle, XCircle, FileText, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle, XCircle, FileText, ShieldAlert, ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 4;
 
 type CBStatus = "aberto" | "contestado" | "ganho" | "perdido";
 interface CB { id: string; data: string; cliente: string; adquirente: "PagSeguro"|"Mercado Pago"; motivo: string; valor: number; prazo: number; status: CBStatus; }
@@ -24,7 +26,11 @@ const brl = (v:number)=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL
 
 export default function ChargebacksPage() {
   const [filter,setFilter] = useState<CBStatus|"all">("all");
+  const [page,setPage] = useState(1);
   const filtered = cbs.filter(c=>filter==="all"||c.status===filter);
+  const totalPages = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
+  const safePage = Math.min(page,totalPages);
+  const paginated = filtered.slice((safePage-1)*PAGE_SIZE, safePage*PAGE_SIZE);
   const abertos = cbs.filter(c=>c.status==="aberto");
   const risk = abertos.reduce((s,c)=>s+c.valor,0);
   const done = cbs.filter(c=>["ganho","perdido"].includes(c.status));
@@ -68,7 +74,7 @@ export default function ChargebacksPage() {
         {/* Filters */}
         <div className="flex items-center gap-2 flex-wrap">
           {(["all","aberto","contestado","ganho","perdido"] as const).map(f=>(
-            <button key={f} onClick={()=>setFilter(f)}
+            <button key={f} onClick={()=>{setFilter(f);setPage(1);}}
               className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
                 background:filter===f?"var(--blue)":"white",
@@ -84,7 +90,7 @@ export default function ChargebacksPage() {
 
         {/* List */}
         <div className="card divide-y" style={{borderColor:"var(--border)"}}>
-          {filtered.map(cb=>{
+          {paginated.map(cb=>{
             const s=smap[cb.status];
             return(
               <div key={cb.id} className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
@@ -129,6 +135,36 @@ export default function ChargebacksPage() {
             );
           })}
         </div>
+
+        {/* Pagination */}
+        {totalPages>1&&(
+          <div className="flex items-center justify-between">
+            <p className="text-xs" style={{color:"var(--muted)"}}>
+              {filtered.length} resultado{filtered.length!==1?"s":""} · página {safePage} de {totalPages}
+            </p>
+            <div className="flex items-center gap-1">
+              <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={safePage===1}
+                className="p-1.5 rounded-lg border transition-all disabled:opacity-30"
+                style={{borderColor:"var(--border)",color:"var(--text-2)"}}>
+                <ChevronLeft size={14}/>
+              </button>
+              {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
+                <button key={n} onClick={()=>setPage(n)}
+                  className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
+                  style={{
+                    background:safePage===n?"var(--blue)":"transparent",
+                    color:safePage===n?"#fff":"var(--text-2)",
+                    border:safePage===n?"none":"1px solid var(--border)",
+                  }}>{n}</button>
+              ))}
+              <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={safePage===totalPages}
+                className="p-1.5 rounded-lg border transition-all disabled:opacity-30"
+                style={{borderColor:"var(--border)",color:"var(--text-2)"}}>
+                <ChevronRight size={14}/>
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

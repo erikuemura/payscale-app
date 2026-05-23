@@ -1,0 +1,419 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Topbar from "@/components/Topbar";
+import { createClient } from "@/lib/supabase/client";
+import { User, Lock, CreditCard, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
+
+type Tab = "perfil" | "senha" | "plano";
+
+function formatDoc(doc: string | null | undefined): string {
+  if (!doc) return "—";
+  const d = doc.replace(/\D/g, "");
+  if (d.length === 14) return d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+  if (d.length === 11) return d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  return doc;
+}
+
+function daysLeft(date: Date | null): number {
+  if (!date) return 0;
+  return Math.max(0, Math.ceil((date.getTime() - Date.now()) / 86400000));
+}
+
+export default function ConfiguracoesPage() {
+  const router   = useRouter();
+  const supabase = createClient();
+  const [tab, setTab] = useState<Tab>("perfil");
+
+  /* ── Perfil ── */
+  const [name,       setName]       = useState("");
+  const [email,      setEmail]      = useState("");
+  const [document,   setDocument]   = useState<string | null>(null);
+  const [personType, setPersonType] = useState<string | null>(null);
+  const [segment,    setSegment]    = useState<string | null>(null);
+  const [trialEnds,  setTrialEnds]  = useState<Date | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [saveLoading,    setSaveLoading]    = useState(false);
+  const [profileMsg,     setProfileMsg]     = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  /* ── Senha ── */
+  const [pwd,     setPwd]     = useState("");
+  const [newPwd,  setNewPwd]  = useState("");
+  const [confPwd, setConfPwd] = useState("");
+  const [showPwd,  setShowPwd]  = useState(false);
+  const [showNew,  setShowNew]  = useState(false);
+  const [pwdLoading, setPwdLoading] = useState(false);
+  const [pwdMsg,     setPwdMsg]     = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  /* ── Load ── */
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.replace("/"); return; }
+
+      setEmail(user.email ?? "");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, document, person_type, segment, trial_ends")
+        .eq("id", user.id)
+        .single();
+
+      setName(profile?.full_name ?? user.user_metadata?.full_name ?? "");
+      setDocument(profile?.document ?? user.user_metadata?.document ?? null);
+      setPersonType(profile?.person_type ?? user.user_metadata?.person_type ?? null);
+      setSegment(profile?.segment ?? user.user_metadata?.segment ?? null);
+      setTrialEnds(profile?.trial_ends ? new Date(profile.trial_ends) : null);
+      setProfileLoading(false);
+    }
+    load();
+  }, [router, supabase]);
+
+  /* ── Salvar perfil ── */
+  async function handleSaveProfile(e: React.FormEvent) {
+    e.preventDefault();
+    setSaveLoading(true);
+    setProfileMsg(null);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: name.trim() })
+      .eq("id", user.id);
+
+    if (error) {
+      setProfileMsg({ type: "err", text: "Erro ao salvar. Tente novamente." });
+    } else {
+      // Atualiza também o user_metadata
+      await supabase.auth.updateUser({ data: { full_name: name.trim() } });
+      setProfileMsg({ type: "ok", text: "Perfil atualizado com sucesso!" });
+    }
+    setSaveLoading(false);
+  }
+
+  /* ── Alterar senha ── */
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwdMsg(null);
+
+    if (newPwd.length < 8) {
+      setPwdMsg({ type: "err", text: "A nova senha deve ter pelo menos 8 caracteres." });
+      return;
+    }
+    if (newPwd !== confPwd) {
+      setPwdMsg({ type: "err", text: "A confirmação não confere com a nova senha." });
+      return;
+    }
+
+    setPwdLoading(true);
+
+    // Reautentica com a senha atual
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: user?.email ?? "",
+      password: pwd,
+    });
+
+    if (signInErr) {
+      setPwdMsg({ type: "err", text: "Senha atual incorreta." });
+      setPwdLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPwd });
+    if (error) {
+      setPwdMsg({ type: "err", text: "Erro ao alterar senha. Tente novamente." });
+    } else {
+      setPwdMsg({ type: "ok", text: "Senha alterada com sucesso!" });
+      setPwd(""); setNewPwd(""); setConfPwd("");
+    }
+    setPwdLoading(false);
+  }
+
+  const days = daysLeft(trialEnds);
+  const segmentLabels: Record<string, string> = {
+    restaurantes: "Restaurantes & Food Service",
+    ecommerce: "E-commerce",
+    saude: "Saúde & Bem-estar",
+    educacao: "Educação",
+    servicos: "Serviços Profissionais",
+    varejo: "Varejo & Outros",
+  };
+
+  /* ── UI ── */
+  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: "perfil", label: "Perfil",   icon: <User size={15} />   },
+    { id: "senha",  label: "Senha",    icon: <Lock size={15} />   },
+    { id: "plano",  label: "Plano",    icon: <CreditCard size={15} /> },
+  ];
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Topbar title="Configurações" subtitle="Gerencie seu perfil, segurança e plano" />
+
+      <main className="flex-1 p-5 lg:p-8" style={{ background: "var(--bg)" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+
+          {/* Tabs */}
+          <div className="flex gap-1 p-1 rounded-xl mb-6"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            {tabs.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  background: tab === t.id ? "var(--blue)" : "transparent",
+                  color:      tab === t.id ? "#fff"        : "var(--text-2)",
+                }}>
+                {t.icon} {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Perfil ── */}
+          {tab === "perfil" && (
+            <div className="card p-6 space-y-5">
+              <div>
+                <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text)" }}>Informações da conta</p>
+                <p className="text-xs" style={{ color: "var(--muted)" }}>Edite seu nome de exibição.</p>
+              </div>
+
+              {profileLoading ? (
+                <div className="space-y-3">
+                  {[1,2,3].map(i => (
+                    <div key={i} className="h-10 rounded-lg animate-pulse" style={{ background: "var(--border)" }} />
+                  ))}
+                </div>
+              ) : (
+                <form onSubmit={handleSaveProfile} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                      Nome / Razão Social
+                    </label>
+                    <input
+                      className="input-base"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                      E-mail
+                    </label>
+                    <input className="input-base" value={email} readOnly
+                      style={{ background: "var(--surface-2)", color: "var(--muted)", cursor: "not-allowed" }} />
+                    <p className="text-[11px] mt-1" style={{ color: "var(--muted)" }}>
+                      O e-mail não pode ser alterado por aqui.
+                    </p>
+                  </div>
+
+                  {/* Campos somente leitura */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                        {personType === "pj" ? "CNPJ" : "CPF"}
+                      </label>
+                      <input className="input-base" value={formatDoc(document)} readOnly
+                        style={{ background: "var(--surface-2)", color: "var(--muted)", cursor: "not-allowed" }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                        Tipo de pessoa
+                      </label>
+                      <input className="input-base"
+                        value={personType === "pj" ? "Pessoa Jurídica" : personType === "pf" ? "Pessoa Física" : "—"}
+                        readOnly
+                        style={{ background: "var(--surface-2)", color: "var(--muted)", cursor: "not-allowed" }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                      Segmento
+                    </label>
+                    <input className="input-base"
+                      value={segment ? (segmentLabels[segment] ?? segment) : "—"}
+                      readOnly
+                      style={{ background: "var(--surface-2)", color: "var(--muted)", cursor: "not-allowed" }} />
+                  </div>
+
+                  {profileMsg && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg text-sm"
+                      style={{
+                        background: profileMsg.type === "ok" ? "var(--green-dim)" : "var(--red-dim)",
+                        border: `1px solid ${profileMsg.type === "ok" ? "rgba(5,150,105,0.2)" : "rgba(220,38,38,0.2)"}`,
+                        color: profileMsg.type === "ok" ? "var(--green)" : "var(--red)",
+                      }}>
+                      {profileMsg.type === "ok" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                      {profileMsg.text}
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={saveLoading}
+                    className="px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
+                    style={{ background: "var(--blue)", color: "#fff" }}>
+                    {saveLoading ? "Salvando…" : "Salvar alterações"}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* ── Senha ── */}
+          {tab === "senha" && (
+            <div className="card p-6 space-y-5">
+              <div>
+                <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text)" }}>Alterar senha</p>
+                <p className="text-xs" style={{ color: "var(--muted)" }}>Use uma senha forte com pelo menos 8 caracteres.</p>
+              </div>
+
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                    Senha atual
+                  </label>
+                  <div className="relative">
+                    <input className="input-base" style={{ paddingRight: 42 }}
+                      type={showPwd ? "text" : "password"} value={pwd}
+                      onChange={e => setPwd(e.target.value)} required
+                      placeholder="••••••••" />
+                    <button type="button" onClick={() => setShowPwd(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: "var(--muted)" }}>
+                      {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                    Nova senha
+                  </label>
+                  <div className="relative">
+                    <input className="input-base" style={{ paddingRight: 42 }}
+                      type={showNew ? "text" : "password"} value={newPwd}
+                      onChange={e => setNewPwd(e.target.value)} required
+                      placeholder="Mínimo 8 caracteres" />
+                    <button type="button" onClick={() => setShowNew(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: "var(--muted)" }}>
+                      {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                    Confirmar nova senha
+                  </label>
+                  <input className="input-base"
+                    type="password" value={confPwd}
+                    onChange={e => setConfPwd(e.target.value)} required
+                    placeholder="Repita a nova senha" />
+                </div>
+
+                {pwdMsg && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg text-sm"
+                    style={{
+                      background: pwdMsg.type === "ok" ? "var(--green-dim)" : "var(--red-dim)",
+                      border: `1px solid ${pwdMsg.type === "ok" ? "rgba(5,150,105,0.2)" : "rgba(220,38,38,0.2)"}`,
+                      color: pwdMsg.type === "ok" ? "var(--green)" : "var(--red)",
+                    }}>
+                    {pwdMsg.type === "ok" ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                    {pwdMsg.text}
+                  </div>
+                )}
+
+                <button type="submit" disabled={pwdLoading}
+                  className="px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
+                  style={{ background: "var(--blue)", color: "#fff" }}>
+                  {pwdLoading ? "Alterando…" : "Alterar senha"}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* ── Plano ── */}
+          {tab === "plano" && (
+            <div className="space-y-4">
+              {/* Status do trial */}
+              <div className="card p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Plano atual</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Você está no período gratuito</p>
+                  </div>
+                  <span className="badge badge-blue">Gratuito</span>
+                </div>
+
+                {/* Trial bar */}
+                <div className="mb-4">
+                  <div className="flex justify-between text-xs mb-1.5" style={{ color: "var(--muted)" }}>
+                    <span>Período gratuito</span>
+                    <span style={{ color: days <= 3 ? "var(--red)" : "var(--text-2)", fontWeight: 600 }}>
+                      {days > 0 ? `${days} dias restantes` : "Expirado"}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
+                    <div className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(100, (days / 14) * 100)}%`,
+                        background: days <= 3 ? "var(--red)" : "var(--blue)",
+                      }} />
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg text-xs" style={{ background: "var(--blue-dim)", color: "var(--blue)" }}>
+                  Aproveite o período gratuito para conectar seus adquirentes e explorar todas as funcionalidades.
+                </div>
+              </div>
+
+              {/* Plano Pro */}
+              <div className="card p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>PayScale Pro</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Acesso completo a todas as funcionalidades</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-black tabular-nums" style={{ color: "var(--text)" }}>R$ 97</p>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>/mês</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-5">
+                  {[
+                    "Conciliação automática ilimitada",
+                    "Alertas de MDR em tempo real",
+                    "Gestão completa de chargebacks",
+                    "Relatórios exportáveis (PDF e CSV)",
+                    "Integrações com todos os adquirentes",
+                    "Suporte prioritário",
+                  ].map(f => (
+                    <div key={f} className="flex items-center gap-2 text-xs" style={{ color: "var(--text-2)" }}>
+                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--green)" }} />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  className="w-full py-3 rounded-lg text-sm font-semibold hover:opacity-90 transition-all"
+                  style={{ background: "var(--blue)", color: "#fff" }}>
+                  Fazer upgrade para o Pro
+                </button>
+                <p className="text-center text-xs mt-2" style={{ color: "var(--muted)" }}>
+                  Cancele a qualquer momento · Sem fidelidade
+                </p>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+    </div>
+  );
+}

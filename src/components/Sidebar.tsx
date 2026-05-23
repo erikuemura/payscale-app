@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useSidebar } from "@/context/SidebarContext";
+import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Link2, ArrowLeftRight, Percent,
   ShieldAlert, BarChart3, Zap, Settings, LogOut, X, Globe,
@@ -36,8 +38,33 @@ function NavItem({
 }
 
 export default function Sidebar() {
-  const path = usePathname();
+  const path     = usePathname();
+  const router   = useRouter();
   const { isOpen, close } = useSidebar();
+
+  const [userName, setUserName]     = useState("Carregando...");
+  const [userInitial, setUserInitial] = useState("?");
+
+  useEffect(() => {
+    async function loadUser() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const name    = user.user_metadata?.full_name ?? user.email ?? "Usuário";
+        const initial = name.charAt(0).toUpperCase();
+        setUserName(name);
+        setUserInitial(initial);
+      }
+    }
+    loadUser();
+  }, []);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  }
 
   const content = (
     <div className="flex flex-col h-full" style={{ background: "var(--sidebar)" }}>
@@ -72,27 +99,32 @@ export default function Sidebar() {
       {/* Bottom */}
       <div className="px-3 pb-4 space-y-0.5" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
         <Link href="/site"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
           style={{ color: "var(--text-2)" }}>
           <Globe size={16} strokeWidth={1.8} /> Site institucional
         </Link>
-        <Link href="#"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
-          style={{ color: "var(--text-2)" }}>
+        <Link href="/dashboard/configuracoes"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
+          style={{
+            background: path === "/dashboard/configuracoes" ? "var(--blue-dim)" : "transparent",
+            color: path === "/dashboard/configuracoes" ? "var(--blue)" : "var(--text-2)",
+          }}>
           <Settings size={16} strokeWidth={1.8} /> Configurações
         </Link>
-        <Link href="/"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-red-50"
           style={{ color: "var(--red)" }}>
           <LogOut size={16} strokeWidth={1.8} /> Sair
-        </Link>
+        </button>
+
         {/* User */}
         <div className="flex items-center gap-2.5 mt-3 px-3 py-2.5 rounded-lg"
           style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-            style={{ background: "var(--blue)", color: "#fff" }}>E</div>
+            style={{ background: "var(--blue)", color: "#fff" }}>{userInitial}</div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold truncate" style={{ color: "var(--text)" }}>Erik Uemura</div>
+            <div className="text-xs font-semibold truncate" style={{ color: "var(--text)" }}>{userName}</div>
             <div className="text-[11px]" style={{ color: "var(--muted)" }}>Administrador</div>
           </div>
         </div>
