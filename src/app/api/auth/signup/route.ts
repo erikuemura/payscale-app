@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { email, password, full_name, person_type, segment, company } = await req.json();
+  const { email, password, full_name, person_type, segment, company, document } = await req.json();
 
   // Validações básicas
   if (!email || !password || !full_name || !segment) {
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     email,
     password,
     email_confirm: true,   // ← confirma direto, sem e-mail
-    user_metadata: { full_name, person_type, segment, company },
+    user_metadata: { full_name, person_type, segment, company, document },
   });
 
   if (error) {
