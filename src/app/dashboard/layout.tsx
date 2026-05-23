@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ToastProvider }   from "@/context/ToastContext";
 import Sidebar      from "@/components/Sidebar";
 import TrialBanner  from "@/components/TrialBanner";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: { default: "Painel", template: "%s — Painel | PayScale Intelligence" },
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
