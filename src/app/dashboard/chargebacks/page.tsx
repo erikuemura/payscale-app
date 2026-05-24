@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Topbar from "@/components/Topbar";
 import { AlertTriangle, Clock, CheckCircle, XCircle, FileText, ShieldAlert,
   ChevronLeft, ChevronRight, Search, X, Copy, ExternalLink } from "lucide-react";
@@ -181,7 +181,7 @@ function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
         {step === 1 ? (
           <div className="px-5 py-4 space-y-4">
             <div className="p-3 rounded-lg text-xs"
-              style={{ background: "var(--amber-dim)", border: "1px solid rgba(217,119,6,0.25)", color: "#92400e" }}>
+              style={{ background: "var(--amber-dim)", border: "1px solid rgba(217,119,6,0.25)", color: "var(--amber)" }}>
               <strong>{cb.id}</strong> — {cb.motivo} · {brl(cb.valor)} · {cb.prazo} {cb.prazo !== 1 ? "dias" : "dia"} restante{cb.prazo !== 1 ? "s" : ""}
             </div>
             <div>
@@ -231,7 +231,7 @@ function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
               ))}
             </div>
             <div className="text-xs p-3 rounded-lg"
-              style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b" }}>
+              style={{ background: "var(--red-dim)", border: "1px solid rgba(220,38,38,0.25)", color: "var(--red)" }}>
               Você possui <strong>{docs.length}</strong> documento{docs.length !== 1 ? "s" : ""} selecionado{docs.length !== 1 ? "s" : ""}. Reúna todos antes de iniciar.
             </div>
             <div className="flex gap-3">
@@ -259,6 +259,20 @@ export default function ChargebacksPage() {
   const [sortDir,  setSortDir]   = useState<"asc"|"desc">("desc");
   const [detalhes, setDetalhes]  = useState<CB|null>(null);
   const [contestar,setContestar] = useState<CB|null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // ⌘F / / focuses search
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (detalhes || contestar) return;
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === "/" && (e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+        e.preventDefault(); searchRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [detalhes, contestar]);
 
   function handleSort(key: keyof CB) {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -326,11 +340,11 @@ export default function ChargebacksPage() {
         {/* Urgent */}
         {urgentes.length>0&&(
           <div className="flex items-start gap-3 p-4 rounded-xl"
-            style={{background:"#fef2f2",border:"1px solid #fecaca"}}>
+            style={{background:"var(--red-dim)",border:"1px solid rgba(220,38,38,0.25)"}}>
             <AlertTriangle size={16} className="shrink-0 mt-0.5" style={{color:"var(--red)"}}/>
             <div>
               <p className="text-sm font-semibold" style={{color:"var(--red)"}}>Prazo crítico — ação necessária</p>
-              <p className="text-xs mt-0.5" style={{color:"#b91c1c"}}>
+              <p className="text-xs mt-0.5" style={{color:"var(--red)"}}>
                 {urgentes.map(c=>`${c.id} (${c.prazo} dia${c.prazo!==1?"s":""} restante${c.prazo!==1?"s":""})`).join(" · ")}
               </p>
             </div>
@@ -343,8 +357,8 @@ export default function ChargebacksPage() {
           <div className="flex items-center gap-2"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px" }}>
             <Search size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
-            <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Buscar por cliente, ID ou motivo..."
+            <input ref={searchRef} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Buscar por cliente, ID ou motivo... (/ ou ⌘F)"
               className="bg-transparent outline-none text-xs flex-1"
               style={{ color: "var(--text)" }} />
             {search && (

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Topbar from "@/components/Topbar";
 import { createClient } from "@/lib/supabase/client";
-import { User, Lock, CreditCard, CheckCircle, AlertCircle, Eye, EyeOff, Trash2, X as XIcon } from "lucide-react";
+import { User, Lock, CreditCard, CheckCircle, AlertCircle, Eye, EyeOff, Trash2, X as XIcon, Loader2 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
 type Tab = "perfil" | "senha" | "plano";
@@ -232,7 +232,7 @@ export default function ConfiguracoesPage() {
 
           {/* ── Perfil ── */}
           {tab === "perfil" && (
-            <div className="card p-6 space-y-5">
+            <div key="perfil" className="card p-6 space-y-5 animate-fade-in">
               <div className="flex items-center gap-4">
                 {/* Avatar */}
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shrink-0"
@@ -320,8 +320,9 @@ export default function ConfiguracoesPage() {
                   )}
 
                   <button type="submit" disabled={saveLoading}
-                    className="px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
                     style={{ background: "var(--blue)", color: "#fff" }}>
+                    {saveLoading && <Loader2 size={14} className="animate-spin" />}
                     {saveLoading ? "Salvando…" : "Salvar alterações"}
                   </button>
                 </form>
@@ -344,7 +345,7 @@ export default function ConfiguracoesPage() {
 
           {/* ── Senha ── */}
           {tab === "senha" && (
-            <div className="card p-6 space-y-5">
+            <div key="senha" className="card p-6 space-y-5 animate-fade-in">
               <div>
                 <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text)" }}>Alterar senha</p>
                 <p className="text-xs" style={{ color: "var(--muted)" }}>Use uma senha forte com pelo menos 8 caracteres.</p>
@@ -409,8 +410,9 @@ export default function ConfiguracoesPage() {
                 )}
 
                 <button type="submit" disabled={pwdLoading}
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
                   style={{ background: "var(--blue)", color: "#fff" }}>
+                  {pwdLoading && <Loader2 size={14} className="animate-spin" />}
                   {pwdLoading ? "Alterando…" : "Alterar senha"}
                 </button>
               </form>
@@ -419,7 +421,7 @@ export default function ConfiguracoesPage() {
 
           {/* ── Plano ── */}
           {tab === "plano" && (
-            <div className="space-y-4">
+            <div key="plano" className="space-y-4 animate-fade-in">
               {/* Status do trial */}
               <div className="card p-6">
                 <div className="flex items-start justify-between mb-4">

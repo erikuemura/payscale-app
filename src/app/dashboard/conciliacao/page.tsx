@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import Topbar from "@/components/Topbar";
 import { CheckCircle, AlertTriangle, XCircle, Search, Download, ArrowLeftRight, ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown, Copy, Check, X as XIcon } from "lucide-react";
 
@@ -141,6 +141,20 @@ export default function ConciliacaoPage() {
   const [selected, setSelected] = useState<Transacao | null>(null);
   const openModal  = useCallback((t: Transacao) => setSelected(t), []);
   const closeModal = useCallback(() => setSelected(null), []);
+  const searchRef  = useRef<HTMLInputElement>(null);
+
+  // ⌘F / / focuses search
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (selected) return; // don't capture when modal open
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+      if (e.key === "/" && (e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+        e.preventDefault(); searchRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected]);
 
   function handleSort(key: keyof Transacao) {
     if (sortKey === key) {
@@ -230,8 +244,8 @@ export default function ConciliacaoPage() {
             <div className="flex items-center gap-2 flex-1 min-w-0"
               style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px" }}>
               <Search size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
-              <input value={search} onChange={e => applySearch(e.target.value)}
-                placeholder="Buscar por ID ou descrição..."
+              <input ref={searchRef} value={search} onChange={e => applySearch(e.target.value)}
+                placeholder="Buscar por ID ou descrição... (/ ou ⌘F)"
                 className="bg-transparent outline-none text-xs flex-1 min-w-0"
                 style={{ color: "var(--text)" }} />
             </div>
