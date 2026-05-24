@@ -262,6 +262,13 @@ export default function ConciliacaoPage() {
                 {f !== "all" && <span className="ml-1.5 opacity-60">{counts[f]}</span>}
               </button>
             ))}
+            {(search || filterStatus !== "all" || dateFrom || dateTo) && (
+              <button onClick={() => { applySearch(""); applyFilter("all"); applyFrom(""); applyTo(""); }}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap hover:opacity-80"
+                style={{ border: "1px solid var(--border)", color: "var(--muted)" }}>
+                Limpar tudo
+              </button>
+            )}
             <button onClick={() => exportCSV(filtered)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all hover:opacity-80 ml-auto"
               style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}>

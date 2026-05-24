@@ -3,6 +3,7 @@ import { useState } from "react";
 import Topbar from "@/components/Topbar";
 import { AlertTriangle, CheckCircle, Bell, Download, X as XIcon, FileText, Send } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { useTheme } from "@/context/ThemeContext";
 
 function exportMDR(data: { m: string; c: number; r: number; d: number }[]) {
   const bom    = "﻿";
@@ -44,10 +45,7 @@ const alertas = [
   { id: 1, adquirente: "PagSeguro", modalidade: "Crédito 12x", contratado: 3.80, cobrado: 4.10, desvio: 0.30, impacto: 1240, desde: "15/05" },
   { id: 2, adquirente: "PagSeguro", modalidade: "Crédito 2x",  contratado: 2.80, cobrado: 3.10, desvio: 0.30, impacto: 380,  desde: "18/05" },
 ];
-const axisStyle = { fontSize: 10, fill: "#8896a8" };
-const grid = { strokeDasharray: "3 3", stroke: "#f1f5f9" };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ttStyle = { contentStyle: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
+// Chart styles are now computed inside TarifasPage (theme-aware)
 
 type Alerta = typeof alertas[number];
 
@@ -145,9 +143,15 @@ function ContestarModal({ alerta, onClose, onSend }: { alerta: Alerta; onClose: 
 }
 
 export default function TarifasPage() {
-  const { toast } = useToast();
+  const { toast }  = useToast();
+  const { theme }  = useTheme();
   const [contesting, setContesting] = useState<Alerta | null>(null);
   const total = alertas.reduce((s, a) => s + a.impacto, 0);
+
+  const axisStyle = { fontSize: 10, fill: theme === "dark" ? "#64748b" : "#8896a8" };
+  const grid      = { strokeDasharray: "3 3", stroke: theme === "dark" ? "#334155" : "#f1f5f9" };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ttStyle = { contentStyle: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar title="Tarifas & MDR" subtitle="Taxas cobradas vs. contratadas" />

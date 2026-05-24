@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Topbar from "@/components/Topbar";
+import { useTheme } from "@/context/ThemeContext";
 import { createClient } from "@/lib/supabase/client";
 import {
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle,
@@ -205,15 +206,15 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
     </div>
   );
 }
-const chartAxisStyle = { fontSize: 11, fill: "#8896a8" };
-const chartGrid     = { strokeDasharray: "3 3", stroke: "#f1f5f9" };
-const tooltipStyle  = {
-  contentStyle: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, color: "var(--text)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formatter: (v: any) => [`${v}%`],
-};
-
 function DashboardContent() {
+  const { theme } = useTheme();
+  const chartAxisStyle = { fontSize: 11, fill: theme === "dark" ? "#64748b" : "#8896a8" };
+  const chartGrid      = { strokeDasharray: "3 3", stroke: theme === "dark" ? "#334155" : "#f1f5f9" };
+  const tooltipStyle   = {
+    contentStyle: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, color: "var(--text)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    formatter: (v: any) => [`${v}%`],
+  };
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar title="Visão Geral" subtitle="Maio 2026 · 2 integrações ativas" />
