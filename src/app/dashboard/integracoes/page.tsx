@@ -19,7 +19,7 @@ function ConnectModal({ name, onClose }: { name: string; onClose: () => void }) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: "rgba(15,23,42,0.4)", backdropFilter: "blur(4px)" }}>
-      <div className="card p-6 w-full max-w-md shadow-xl">
+      <div role="dialog" aria-modal="true" aria-label={`Conectar ${name}`} className="card p-6 w-full max-w-md shadow-xl">
         <div className="flex items-center gap-3 mb-5">
           <div className="icon-box" style={{ background: "var(--blue-dim)", color: "var(--blue)" }}><Link2 size={17} /></div>
           <div>
@@ -63,7 +63,7 @@ function DisconnectModal({ name, onConfirm, onClose }: { name: string; onConfirm
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="card p-6 w-full max-w-sm shadow-xl">
+      <div role="dialog" aria-modal="true" aria-label={`Desconectar ${name}`} className="card p-6 w-full max-w-sm shadow-xl">
         <div className="flex items-center gap-3 mb-4">
           <div className="icon-box shrink-0" style={{ background: "var(--red-dim)", color: "var(--red)" }}>
             <AlertTriangle size={17} />

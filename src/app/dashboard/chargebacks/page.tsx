@@ -41,7 +41,7 @@ function DetalhesModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
       onClick={onClose}>
-      <div className="card w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-label="Detalhes do chargeback" className="card w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-2">
             <ShieldAlert size={16} style={{ color: "var(--muted)" }} />
@@ -167,7 +167,7 @@ function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
       onClick={onClose}>
-      <div className="card w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-label="Contestar chargeback" className="card w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-2">
             <AlertTriangle size={16} style={{ color: "var(--red)" }} />
