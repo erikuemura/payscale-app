@@ -181,7 +181,8 @@ export default function Topbar({ title, subtitle }: Props) {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-10 w-56 rounded-xl overflow-hidden z-50"
+            <div role="menu" aria-label="Menu do usuário"
+              className="absolute right-0 top-10 w-56 rounded-xl overflow-hidden z-50"
               style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
               <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
                 <p className="text-xs font-semibold truncate" style={{ color: "var(--text)" }}>
@@ -193,11 +194,13 @@ export default function Topbar({ title, subtitle }: Props) {
               </div>
               <div className="py-1">
                 <Link href="/dashboard/configuracoes?tab=perfil" onClick={() => setMenuOpen(false)}
+                  role="menuitem"
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs hover:bg-gray-50 transition-colors text-left"
                   style={{ color: "var(--text-2)" }}>
                   <User size={13} /> Meu perfil
                 </Link>
                 <Link href="/dashboard/configuracoes" onClick={() => setMenuOpen(false)}
+                  role="menuitem"
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs hover:bg-gray-50 transition-colors text-left"
                   style={{ color: "var(--text-2)" }}>
                   <Settings size={13} /> Configurações
@@ -205,6 +208,7 @@ export default function Topbar({ title, subtitle }: Props) {
               </div>
               <div style={{ borderTop: "1px solid var(--border)" }} className="py-1">
                 <button
+                  role="menuitem"
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs hover:bg-red-50 transition-colors text-left"
                   style={{ color: "var(--red)" }}>

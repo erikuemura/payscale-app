@@ -26,6 +26,7 @@ function NavItem({
     <Link
       href={href}
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-100"
       style={{
         background: active ? "var(--blue-dim)" : "transparent",
@@ -98,13 +99,13 @@ export default function Sidebar() {
           </div>
         </div>
         <button onClick={close} className="lg:hidden p-1 rounded-lg hover:bg-gray-100"
-          style={{ color: "var(--muted)" }}>
+          style={{ color: "var(--muted)" }} aria-label="Fechar menu">
           <X size={16} />
         </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Menu principal">
         <p className="text-[10px] font-semibold uppercase tracking-widest px-3 mb-2"
           style={{ color: "var(--muted)" }}>Menu</p>
         {nav.map(item => (

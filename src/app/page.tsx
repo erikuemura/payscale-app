@@ -201,6 +201,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg)" }}>
+      <title>Login | PayScale Intelligence</title>
 
       {/* ══ Painel esquerdo ══ */}
       <div className="hidden lg:flex flex-col justify-between w-[400px] shrink-0 p-12"

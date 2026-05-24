@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Zap, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Zap, ArrowRight, AlertCircle, CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 function PasswordStrength({ pwd }: { pwd: string }) {
@@ -19,7 +19,7 @@ function PasswordStrength({ pwd }: { pwd: string }) {
       <div style={{ display: "flex", gap: "0.25rem", marginBottom: "0.25rem" }}>
         {[1,2,3,4].map(i => (
           <div key={i} style={{ height: 4, flex: 1, borderRadius: 99, transition: "background 0.3s",
-            background: i <= score ? colors[score] : "#e2e8f0" }} />
+            background: i <= score ? colors[score] : "var(--border)" }} />
         ))}
       </div>
       <p style={{ fontSize: 11, color: colors[score] }}>{labels[score]}</p>
@@ -87,7 +87,7 @@ function RequestReset() {
         <button type="submit" disabled={loading}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
           style={{ background: "var(--blue)", color: "#fff" }}>
-          {loading ? "Enviando…" : <><span>Enviar link</span> <ArrowRight size={15} /></>}
+          {loading ? <><Loader2 size={15} className="animate-spin" /> Enviando…</> : <><span>Enviar link</span> <ArrowRight size={15} /></>}
         </button>
       </form>
       <p className="text-center text-xs mt-8" style={{ color: "var(--muted)" }}>
@@ -168,7 +168,7 @@ function UpdatePassword() {
         <button type="submit" disabled={loading}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
           style={{ background: "var(--blue)", color: "#fff" }}>
-          {loading ? "Salvando…" : <><span>Salvar nova senha</span> <ArrowRight size={15} /></>}
+          {loading ? <><Loader2 size={15} className="animate-spin" /> Salvando…</> : <><span>Salvar nova senha</span> <ArrowRight size={15} /></>}
         </button>
       </form>
     </>
@@ -185,6 +185,7 @@ function ResetContent() {
 export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "var(--bg)" }}>
+      <title>Recuperar Senha | PayScale Intelligence</title>
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2 mb-10">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--blue)" }}>

@@ -199,7 +199,7 @@ export default function IntegracoesPage() {
                       <>
                         <button onClick={() => handleSync(intg.id)}
                           disabled={syncing === intg.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-all disabled:opacity-60"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-50 transition-all disabled:opacity-60"
                           style={{ border: "1px solid var(--border)", color: "var(--blue)" }}>
                           <RefreshCw size={12} className={syncing === intg.id ? "animate-spin" : ""} />
                           {syncing === intg.id ? "Sincronizando..." : "Sincronizar"}

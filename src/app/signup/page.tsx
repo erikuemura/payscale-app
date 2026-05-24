@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle,
-  Building2, User, Zap,
+  Building2, User, Zap, Loader2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -255,6 +255,7 @@ export default function SignupPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", background: "var(--bg)" }}>
+      <title>Criar Conta | PayScale Intelligence</title>
 
       {/* ══ Painel esquerdo ══ */}
       <div className="hidden lg:flex flex-col justify-between"
@@ -319,7 +320,7 @@ export default function SignupPage() {
             onClick={handleGoogle}
             disabled={oLoading}
             style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.625rem", padding: "0.625rem", borderRadius: 8, fontSize: "0.875rem", fontWeight: 600, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", cursor: "pointer", marginBottom: "1rem", opacity: oLoading ? 0.6 : 1 }}>
-            {oLoading ? "Conectando…" : <><GoogleIcon /> Continuar com Google</>}
+            {oLoading ? <><Loader2 size={15} className="animate-spin" /> Conectando…</> : <><GoogleIcon /> Continuar com Google</>}
           </button>
 
           {/* Divisor */}
@@ -469,7 +470,7 @@ export default function SignupPage() {
               disabled={loading}
               style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.625rem", borderRadius: 8, fontSize: "0.875rem", fontWeight: 600, background: "var(--blue)", color: "#fff", border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}>
               {loading
-                ? "Criando conta…"
+                ? <><Loader2 size={15} className="animate-spin" /> Criando conta…</>
                 : <><span>Criar conta grátis</span> <ArrowRight size={15} /></>}
             </button>
           </form>

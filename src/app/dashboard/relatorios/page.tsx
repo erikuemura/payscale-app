@@ -307,7 +307,7 @@ export default function RelatoriosPage() {
                             downloadCSV(id, month, `${id}_${slug}.csv`);
                             toast(`${r.name} baixado!`);
                           }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-50 transition-all"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-all"
                           style={{border:"1px solid var(--border)",color:"var(--blue)"}}>
                           <Download size={12}/>Baixar
                         </button>
