@@ -252,6 +252,7 @@ export default function RelatoriosPage() {
                   <span className="badge badge-blue">{r.tipo}</span>
                   <div className="flex gap-2 ml-auto">
                     <select
+                      aria-label={`Período — ${r.title}`}
                       className="input-base text-xs py-1.5 pl-2 pr-7"
                       style={{width:"auto",color:"var(--text-2)"}}
                       value={months[r.id]}
