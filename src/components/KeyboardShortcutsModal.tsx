@@ -84,6 +84,9 @@ export default function KeyboardShortcutsModal() {
       onMouseDown={() => setOpen(false)}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Atalhos de teclado"
         className="relative w-full rounded-2xl overflow-hidden"
         style={{
           maxWidth: 520,

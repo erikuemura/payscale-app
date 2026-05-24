@@ -29,13 +29,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none"
+      <div aria-live="polite" aria-label="Notificações"
+        className="fixed bottom-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none"
         style={{ maxWidth: 360 }}>
         {toasts.map(t => {
           const { bg, border, color, Icon } = cfg[t.type];
           return (
-            <div key={t.id}
-              className="pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium"
+            <div key={t.id} role="status"
+              className="pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium animate-fade-in"
               style={{ background: bg, border: `1px solid ${border}`, color, backdropFilter: "blur(8px)" }}>
               <Icon size={16} className="shrink-0 mt-0.5" />
               <span className="flex-1 leading-snug">{t.message}</span>

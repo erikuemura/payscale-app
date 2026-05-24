@@ -23,6 +23,7 @@ export default function CommandPalette() {
   const [open, setOpen]   = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [gPressed, setGPressed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef  = useRef<HTMLDivElement>(null);
   const router   = useRouter();
@@ -76,12 +77,45 @@ export default function CommandPalette() {
 
   useEffect(() => { setActive(0); }, [query]);
 
+  // G+letter navigation shortcuts (GitHub-style)
+  const G_NAV: Record<string, string> = {
+    d: "/dashboard",
+    i: "/dashboard/integracoes",
+    c: "/dashboard/conciliacao",
+    t: "/dashboard/tarifas",
+    b: "/dashboard/chargebacks",
+    r: "/dashboard/relatorios",
+  };
+
   useEffect(() => {
+    let gTimer: ReturnType<typeof setTimeout>;
     function down(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setOpen(v => !v);
+        return;
       }
+
+      // G+letter navigation (only when not in input/modal)
+      const inInput = (e.target as HTMLElement).tagName === "INPUT"
+        || (e.target as HTMLElement).tagName === "TEXTAREA"
+        || (e.target as HTMLElement).isContentEditable;
+      if (!open && !inInput && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (e.key.toLowerCase() === "g") {
+          setGPressed(true);
+          clearTimeout(gTimer);
+          gTimer = setTimeout(() => setGPressed(false), 800);
+          return;
+        }
+        if (gPressed && G_NAV[e.key.toLowerCase()]) {
+          e.preventDefault();
+          setGPressed(false);
+          clearTimeout(gTimer);
+          router.push(G_NAV[e.key.toLowerCase()]);
+          return;
+        }
+      }
+
       if (!open) return;
       if (e.key === "Escape") { close(); return; }
       if (e.key === "ArrowDown") { e.preventDefault(); setActive(v => Math.min(v + 1, flat.length - 1)); }
@@ -89,8 +123,9 @@ export default function CommandPalette() {
       if (e.key === "Enter") { e.preventDefault(); flat[active]?.action(); }
     }
     window.addEventListener("keydown", down);
-    return () => window.removeEventListener("keydown", down);
-  }, [open, close, flat, active]);
+    return () => { window.removeEventListener("keydown", down); clearTimeout(gTimer); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, close, flat, active, gPressed, router]);
 
   // Scroll active item into view
   useEffect(() => {
@@ -113,6 +148,9 @@ export default function CommandPalette() {
       style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
       onMouseDown={e => { if (e.target === e.currentTarget) close(); }}>
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Paleta de comandos"
         className="w-full max-w-lg rounded-2xl overflow-hidden"
         style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 24px 64px rgba(0,0,0,0.3)" }}>
 
