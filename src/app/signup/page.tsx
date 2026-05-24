@@ -458,6 +458,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => setShow(v => !v)}
+                  aria-label={show ? "Ocultar senha" : "Mostrar senha"}
                   style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "flex" }}>
                   {show ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>

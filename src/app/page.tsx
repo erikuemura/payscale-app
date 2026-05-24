@@ -170,6 +170,7 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => setShow(v => !v)}
+              aria-label={show ? "Ocultar senha" : "Mostrar senha"}
               className="absolute right-3 top-1/2 -translate-y-1/2"
               style={{ color: "var(--muted)" }}>
               {show ? <EyeOff size={15} /> : <Eye size={15} />}
