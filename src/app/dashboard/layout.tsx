@@ -4,6 +4,7 @@ import { ToastProvider }   from "@/context/ToastContext";
 import Sidebar          from "@/components/Sidebar";
 import TrialBanner      from "@/components/TrialBanner";
 import CommandPalette   from "@/components/CommandPalette";
+import ErrorBoundary    from "@/components/ErrorBoundary";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -26,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Sidebar />
           <div className="flex flex-col flex-1 min-w-0">
             <TrialBanner />
-            {children}
+            <ErrorBoundary>{children}</ErrorBoundary>
           </div>
         </div>
         <CommandPalette />

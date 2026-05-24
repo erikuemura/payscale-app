@@ -238,6 +238,9 @@ function DashboardContent() {
                 <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Volume de Vendas</p>
                 <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Maio 2026 por adquirente</p>
               </div>
+              <Link href="/dashboard/relatorios" className="text-xs font-medium hover:underline shrink-0" style={{ color: "var(--blue)" }}>
+                Ver relatório →
+              </Link>
               <div className="flex items-center gap-4 text-xs" style={{ color: "var(--muted)" }}>
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-sm inline-block" style={{ background: "var(--blue)" }} /> PagSeguro
@@ -270,9 +273,14 @@ function DashboardContent() {
           </div>
 
           <div className="card p-5">
-            <div className="mb-5">
-              <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>MDR: Contratado vs Cobrado</p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Desvios sinalizados em vermelho</p>
+            <div className="flex items-start justify-between mb-5">
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>MDR: Contratado vs Cobrado</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Desvios sinalizados em vermelho</p>
+              </div>
+              <Link href="/dashboard/tarifas" className="text-xs font-medium hover:underline shrink-0" style={{ color: "var(--blue)" }}>
+                Ver tarifas →
+              </Link>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={mdrData} barCategoryGap={10} margin={{ left: -12, right: 4 }}>
@@ -362,24 +370,24 @@ function DashboardContent() {
               <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Conciliação — Maio 2026</p>
               <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>2.191 transações processadas</p>
             </div>
-            <a href="/dashboard/conciliacao" className="text-xs font-medium hover:underline" style={{ color: "var(--blue)" }}>
+            <Link href="/dashboard/conciliacao" className="text-xs font-medium hover:underline" style={{ color: "var(--blue)" }}>
               Ver tudo →
-            </a>
+            </Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0" style={{ borderColor: "var(--border)" }}>
             {[
-              { label: "Processadas",     value: "2.191", icon: <TrendingUp size={15}/>,   color: "var(--blue)"  },
-              { label: "Conciliadas",     value: "2.155", icon: <CheckCircle size={15}/>,  color: "var(--green)" },
-              { label: "Com Divergência", value: "24",    icon: <AlertTriangle size={15}/>,color: "var(--amber)" },
-              { label: "Sem Liquidação",  value: "12",    icon: <TrendingDown size={15}/>, color: "var(--red)"   },
+              { label: "Processadas",     value: "2.191", icon: <TrendingUp size={15}/>,   color: "var(--blue)",  href: "/dashboard/conciliacao" },
+              { label: "Conciliadas",     value: "2.155", icon: <CheckCircle size={15}/>,  color: "var(--green)", href: "/dashboard/conciliacao" },
+              { label: "Com Divergência", value: "24",    icon: <AlertTriangle size={15}/>,color: "var(--amber)", href: "/dashboard/conciliacao" },
+              { label: "Sem Liquidação",  value: "12",    icon: <TrendingDown size={15}/>, color: "var(--red)",   href: "/dashboard/conciliacao" },
             ].map(item => (
-              <div key={item.label} className="px-5 py-4">
+              <Link key={item.label} href={item.href} className="px-5 py-4 hover:bg-gray-50 transition-colors" style={{ display: "block" }}>
                 <div className="flex items-center gap-2 mb-2" style={{ color: item.color }}>
                   {item.icon}
                   <span className="text-xs font-medium" style={{ color: "var(--muted)" }}>{item.label}</span>
                 </div>
                 <p className="text-xl font-bold tabular-nums" style={{ color: "var(--text)" }}>{item.value}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

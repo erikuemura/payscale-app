@@ -197,20 +197,24 @@ export default function ConciliacaoPage() {
       <Topbar title="Conciliação" subtitle="Cruzamento de vendas vs. liquidações dos adquirentes" />
 
       <main className="flex-1 p-4 lg:p-8 space-y-5">
-        {/* KPIs */}
+        {/* KPIs — clicáveis para filtrar */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Total",          value: String(transacoes.length),    icon: <ArrowLeftRight size={18}/>, color: "var(--blue)",  bg: "var(--blue-dim)"  },
-            { label: "Conciliadas",    value: String(counts.ok),            icon: <CheckCircle size={18}/>,   color: "var(--green)", bg: "var(--green-dim)" },
-            { label: "Divergências",   value: String(counts.divergencia),   icon: <AlertTriangle size={18}/>, color: "var(--amber)", bg: "var(--amber-dim)" },
-            { label: "Sem liquidação", value: String(counts.sem_liquidacao),icon: <XCircle size={18}/>,       color: "var(--red)",   bg: "var(--red-dim)"   },
-          ].map(k => (
-            <div key={k.label} className="card p-4">
+            { label: "Total",          value: String(transacoes.length),    icon: <ArrowLeftRight size={18}/>, color: "var(--blue)",  bg: "var(--blue-dim)",  filterVal: "all"           as RecStatus|"all" },
+            { label: "Conciliadas",    value: String(counts.ok),            icon: <CheckCircle size={18}/>,   color: "var(--green)", bg: "var(--green-dim)", filterVal: "ok"            as RecStatus|"all" },
+            { label: "Divergências",   value: String(counts.divergencia),   icon: <AlertTriangle size={18}/>, color: "var(--amber)", bg: "var(--amber-dim)", filterVal: "divergencia"   as RecStatus|"all" },
+            { label: "Sem liquidação", value: String(counts.sem_liquidacao),icon: <XCircle size={18}/>,       color: "var(--red)",   bg: "var(--red-dim)",   filterVal: "sem_liquidacao" as RecStatus|"all" },
+          ].map(k => {
+            const isActive = filterStatus === k.filterVal;
+            return (
+            <button key={k.label} onClick={() => applyFilter(k.filterVal)} className="card p-4 text-left transition-all hover:opacity-80"
+              style={{ outline: isActive ? `2px solid ${k.color}` : "none", outlineOffset: 2 }}>
               <div className="icon-box mb-3" style={{ background: k.bg, color: k.color }}>{k.icon}</div>
               <div className="text-2xl font-bold tabular-nums" style={{ color: k.color }}>{k.value}</div>
               <div className="text-xs mt-1" style={{ color: "var(--muted)" }}>{k.label}</div>
-            </div>
-          ))}
+            </button>
+            );
+          })}
         </div>
 
         {/* Filters */}
