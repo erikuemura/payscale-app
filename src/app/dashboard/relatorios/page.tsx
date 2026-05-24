@@ -277,7 +277,7 @@ export default function RelatoriosPage() {
           <p className="text-sm font-semibold mb-4" style={{color:"var(--text)"}}>Histórico</p>
           <div className="card overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+              <table className="w-full text-xs" aria-label="Histórico de relatórios">
                 <thead>
                   <tr style={{background:"var(--surface-2)",borderBottom:"1px solid var(--border)"}}>
                     {["Relatório","Gerado em","Tamanho",""].map(h=>(

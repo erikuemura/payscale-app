@@ -250,7 +250,7 @@ export default function TarifasPage() {
             </button>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-xs" aria-label="Detalhamento de MDR por modalidade">
               <thead>
                 <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
                   {["Modalidade","MDR Contratado","MDR Cobrado","Desvio","Status"].map(h => (

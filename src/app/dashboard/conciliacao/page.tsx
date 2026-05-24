@@ -275,6 +275,7 @@ export default function ConciliacaoPage() {
           <div className="flex items-center gap-2 flex-wrap">
             {(["all", "ok", "divergencia", "sem_liquidacao"] as const).map(f => (
               <button key={f} onClick={() => applyFilter(f)}
+                aria-pressed={filterStatus === f}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap"
                 style={{
                   background: filterStatus === f ? "var(--blue-dim)" : "var(--surface-2)",
@@ -348,7 +349,7 @@ export default function ConciliacaoPage() {
         {/* Table — hidden on mobile */}
         <div className="card overflow-hidden hidden md:block">
           <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
-            <table className="w-full text-xs">
+            <table className="w-full text-xs" aria-label="Transações conciliadas">
               <thead className="sticky top-0 z-10">
                 <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
                   {([
