@@ -362,6 +362,7 @@ export default function ConfiguracoesPage() {
                       onChange={e => setPwd(e.target.value)} required
                       placeholder="••••••••" />
                     <button type="button" onClick={() => setShowPwd(v => !v)}
+                      aria-label={showPwd ? "Ocultar senha atual" : "Mostrar senha atual"}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                       style={{ color: "var(--muted)" }}>
                       {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -379,6 +380,7 @@ export default function ConfiguracoesPage() {
                       onChange={e => setNewPwd(e.target.value)} required
                       placeholder="Mínimo 8 caracteres" />
                     <button type="button" onClick={() => setShowNew(v => !v)}
+                      aria-label={showNew ? "Ocultar nova senha" : "Mostrar nova senha"}
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                       style={{ color: "var(--muted)" }}>
                       {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -510,13 +512,14 @@ export default function ConfiguracoesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
           style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)" }}
           onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteModal(false); setDeleteConfirm(""); } }}>
-          <div className="card w-full max-w-sm shadow-2xl overflow-hidden">
+          <div role="dialog" aria-modal="true" aria-label="Excluir conta" className="card w-full max-w-sm shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
               <div className="flex items-center gap-2">
                 <Trash2 size={15} style={{ color: "var(--red)" }} />
                 <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Excluir conta</p>
               </div>
               <button onClick={() => { setDeleteModal(false); setDeleteConfirm(""); }}
+                aria-label="Fechar"
                 className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                 style={{ color: "var(--muted)" }}>
                 <XIcon size={15} />
