@@ -73,36 +73,42 @@ function OnboardingState({ user }: { user: UserInfo }) {
               num: "1", done: true,
               title: "Criar sua conta",
               desc: "Conta criada com sucesso.",
-              icon: <CheckCircle size={16} />, color: "var(--green)",
+              icon: <CheckCircle size={16} />, color: "var(--green)", href: null,
             },
             {
               num: "2", done: false,
               title: "Conectar adquirente",
               desc: "Integre PagSeguro, Mercado Pago, Stone e outros.",
-              icon: <Plug size={16} />, color: "var(--blue)",
+              icon: <Plug size={16} />, color: "var(--blue)", href: "/dashboard/integracoes",
             },
             {
               num: "3", done: false,
               title: "Ver seu painel",
               desc: "Conciliação, MDR e alertas em tempo real.",
-              icon: <Zap size={16} />, color: "var(--amber)",
+              icon: <Zap size={16} />, color: "var(--amber)", href: null,
             },
-          ].map(step => (
-            <div key={step.num} className="card p-5 flex items-start gap-4">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                style={{
-                  background: step.done ? "var(--green-dim)" : "var(--blue-dim)",
-                  color: step.done ? "var(--green)" : step.color,
-                }}>
-                {step.done ? <CheckCircle size={16} /> : step.icon}
-              </div>
-              <div>
-                <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--text)" }}>{step.title}</p>
-                <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>{step.desc}</p>
-              </div>
-            </div>
-          ))}
+          ].map(step => {
+            const inner = (
+              <>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{
+                    background: step.done ? "var(--green-dim)" : "var(--blue-dim)",
+                    color: step.done ? "var(--green)" : step.color,
+                  }}>
+                  {step.done ? <CheckCircle size={16} /> : step.icon}
+                </div>
+                <div>
+                  <p className="text-xs font-semibold mb-0.5" style={{ color: "var(--text)" }}>{step.title}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--muted)" }}>{step.desc}</p>
+                  {step.href && <p className="text-xs font-semibold mt-1" style={{ color: "var(--blue)" }}>Começar agora →</p>}
+                </div>
+              </>
+            );
+            return step.href
+              ? <Link key={step.num} href={step.href} className="card p-5 flex items-start gap-4 hover:opacity-90 transition-all">{inner}</Link>
+              : <div key={step.num} className="card p-5 flex items-start gap-4">{inner}</div>;
+          })}
         </div>
 
         {/* Integrações disponíveis */}

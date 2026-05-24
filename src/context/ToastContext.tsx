@@ -12,9 +12,9 @@ export const useToast = () => useContext(ToastContext);
 let uid = 0;
 
 const cfg: Record<ToastType, { bg: string; border: string; color: string; Icon: React.ElementType }> = {
-  success: { bg: "#f0fdf4", border: "#bbf7d0", color: "#166534", Icon: CheckCircle },
-  error:   { bg: "#fef2f2", border: "#fecaca", color: "#991b1b", Icon: XCircle    },
-  info:    { bg: "#eff6ff", border: "#bfdbfe", color: "#1e40af", Icon: Info        },
+  success: { bg: "var(--green-dim)", border: "rgba(5,150,105,0.25)", color: "var(--green)", Icon: CheckCircle },
+  error:   { bg: "var(--red-dim)",   border: "rgba(220,38,38,0.25)", color: "var(--red)",   Icon: XCircle    },
+  info:    { bg: "var(--blue-dim)",  border: "rgba(37,99,235,0.25)", color: "var(--blue)",  Icon: Info        },
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -36,7 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           return (
             <div key={t.id}
               className="pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg text-sm font-medium"
-              style={{ background: bg, border: `1px solid ${border}`, color }}>
+              style={{ background: bg, border: `1px solid ${border}`, color, backdropFilter: "blur(8px)" }}>
               <Icon size={16} className="shrink-0 mt-0.5" />
               <span className="flex-1 leading-snug">{t.message}</span>
               <button onClick={() => setToasts(prev => prev.filter(t2 => t2.id !== t.id))}

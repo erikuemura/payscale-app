@@ -96,6 +96,7 @@ function DisconnectModal({ name, onConfirm, onClose }: { name: string; onConfirm
 export default function IntegracoesPage() {
   const [modal,      setModal]      = useState<string | null>(null);
   const [disconnect, setDisconnect] = useState<string | null>(null);
+  const [syncing,    setSyncing]    = useState<string | null>(null);
   const [statuses,   setStatuses]   = useState<Record<string, Status>>(
     Object.fromEntries(integrations.map(i => [i.id, i.status]))
   );
@@ -107,6 +108,11 @@ export default function IntegracoesPage() {
       setStatuses(prev => ({ ...prev, [disconnect]: "disconnected" }));
       setDisconnect(null);
     }
+  }
+
+  function handleSync(id: string) {
+    setSyncing(id);
+    setTimeout(() => setSyncing(null), 2000);
   }
 
   return (
@@ -174,9 +180,12 @@ export default function IntegracoesPage() {
                   <div className="flex gap-2 flex-wrap">
                     {st === "connected" ? (
                       <>
-                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-all"
+                        <button onClick={() => handleSync(intg.id)}
+                          disabled={syncing === intg.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-all disabled:opacity-60"
                           style={{ border: "1px solid var(--border)", color: "var(--blue)" }}>
-                          <RefreshCw size={12} /> Sincronizar
+                          <RefreshCw size={12} className={syncing === intg.id ? "animate-spin" : ""} />
+                          {syncing === intg.id ? "Sincronizando..." : "Sincronizar"}
                         </button>
                         <button className="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-50 transition-all"
                           style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>Configurar</button>

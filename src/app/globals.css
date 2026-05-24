@@ -113,6 +113,15 @@
   flex-shrink: 0;
 }
 
+/* ── Print ──────────────────────────────────────────── */
+@media print {
+  aside, header, .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .card { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+  a { text-decoration: none !important; color: black !important; }
+  button { display: none !important; }
+}
+
 /* ── Input ──────────────────────────────────────────── */
 .input-base {
   background: #ffffff;

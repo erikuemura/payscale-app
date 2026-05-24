@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Topbar from "@/components/Topbar";
-import { Download, FileText, TrendingUp, AlertTriangle, ShieldAlert, BarChart3, Mail, X as XIcon, Plus, Trash2 } from "lucide-react";
+import { Download, FileText, TrendingUp, AlertTriangle, ShieldAlert, BarChart3, Mail, X as XIcon, Plus, Trash2, Printer } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
 /* ── Gerador de CSV mock ── */
@@ -228,7 +228,14 @@ export default function RelatoriosPage() {
 
         {/* Generate */}
         <div>
-          <p className="text-sm font-semibold mb-4" style={{color:"var(--text)"}}>Gerar Relatório</p>
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold" style={{color:"var(--text)"}}>Gerar Relatório</p>
+            <button onClick={() => window.print()}
+              className="no-print flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-50 transition-all"
+              style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+              <Printer size={13}/> Imprimir página
+            </button>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {types.map(r=>(
               <div key={r.id} className="card overflow-hidden">
