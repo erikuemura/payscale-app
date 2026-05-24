@@ -129,6 +129,11 @@
   button { display: none !important; }
 }
 
+/* ── Sidebar nav link ───────────────────────────────── */
+.nav-link:hover {
+  background-color: var(--surface-2) !important;
+}
+
 /* ── Animations ─────────────────────────────────────── */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(6px); }

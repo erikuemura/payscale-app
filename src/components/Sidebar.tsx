@@ -11,29 +11,43 @@ import {
 import { useTheme } from "@/context/ThemeContext";
 
 const nav = [
-  { href: "/dashboard",             icon: LayoutDashboard, label: "Visão Geral"  },
-  { href: "/dashboard/integracoes", icon: Link2,           label: "Integrações"  },
-  { href: "/dashboard/conciliacao", icon: ArrowLeftRight,  label: "Conciliação"  },
-  { href: "/dashboard/tarifas",     icon: Percent,         label: "Tarifas & MDR"},
-  { href: "/dashboard/chargebacks", icon: ShieldAlert,     label: "Chargebacks"  },
-  { href: "/dashboard/relatorios",  icon: BarChart3,       label: "Relatórios"   },
+  { href: "/dashboard",             icon: LayoutDashboard, label: "Visão Geral",   badge: null                     },
+  { href: "/dashboard/integracoes", icon: Link2,           label: "Integrações",   badge: "live" as const          },
+  { href: "/dashboard/conciliacao", icon: ArrowLeftRight,  label: "Conciliação",   badge: null                     },
+  { href: "/dashboard/tarifas",     icon: Percent,         label: "Tarifas & MDR", badge: "2" as const             },
+  { href: "/dashboard/chargebacks", icon: ShieldAlert,     label: "Chargebacks",   badge: "5" as const             },
+  { href: "/dashboard/relatorios",  icon: BarChart3,       label: "Relatórios",    badge: null                     },
 ];
 
 function NavItem({
-  href, icon: Icon, label, active, onClick,
-}: { href: string; icon: React.ElementType; label: string; active: boolean; onClick?: () => void }) {
+  href, icon: Icon, label, active, onClick, badge,
+}: { href: string; icon: React.ElementType; label: string; active: boolean; onClick?: () => void; badge?: string | null }) {
   return (
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-100"
+      className="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-100"
       style={{
         background: active ? "var(--blue-dim)" : "transparent",
         color: active ? "var(--blue)" : "var(--text-2)",
       }}
     >
       <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge === "live" && (
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ background: "var(--green)" }} />
+          <span className="relative inline-flex rounded-full h-2 w-2"
+            style={{ background: "var(--green)" }} />
+        </span>
+      )}
+      {badge && badge !== "live" && (
+        <span className="text-[10px] font-bold min-w-[16px] h-4 flex items-center justify-center rounded-full px-1"
+          style={{ background: "var(--red-dim)", color: "var(--red)" }}>
+          {badge}
+        </span>
+      )}
     </Link>
   );
 }
@@ -94,7 +108,7 @@ export default function Sidebar() {
         <p className="text-[10px] font-semibold uppercase tracking-widest px-3 mb-2"
           style={{ color: "var(--muted)" }}>Menu</p>
         {nav.map(item => (
-          <NavItem key={item.href} {...item} active={path === item.href} onClick={close} />
+          <NavItem key={item.href} {...item} active={path === item.href} onClick={close} badge={item.badge} />
         ))}
       </nav>
 
@@ -102,18 +116,18 @@ export default function Sidebar() {
       <div className="px-3 pb-4 space-y-0.5" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
         {/* Dark mode toggle */}
         <button onClick={toggleTheme}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
+          className="nav-link w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
           style={{ color: "var(--text-2)" }}>
           {theme === "dark" ? <Sun size={16} strokeWidth={1.8} /> : <Moon size={16} strokeWidth={1.8} />}
           {theme === "dark" ? "Modo claro" : "Modo escuro"}
         </button>
         <Link href="/site"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
+          className="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
           style={{ color: "var(--text-2)" }}>
           <Globe size={16} strokeWidth={1.8} /> Site institucional
         </Link>
         <Link href="/dashboard/configuracoes"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
+          className="nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
           style={{
             background: path === "/dashboard/configuracoes" ? "var(--blue-dim)" : "transparent",
             color: path === "/dashboard/configuracoes" ? "var(--blue)" : "var(--text-2)",

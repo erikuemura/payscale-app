@@ -261,7 +261,7 @@ export default function TarifasPage() {
               <tbody>
                 {mdrData.map((m, i) => (
                   <tr key={m.m} style={{ borderTop: "1px solid var(--border)", background: i%2===0?"var(--surface)":"var(--surface-2)" }}
-                    className="hover:bg-blue-50/30 transition-colors">
+                    className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-3 font-medium" style={{ color: "var(--text)" }}>{m.m}</td>
                     <td className="px-5 py-3 tabular-nums" style={{ color: "var(--text-2)" }}>{m.c.toFixed(2)}%</td>
                     <td className="px-5 py-3 font-semibold tabular-nums" style={{ color: m.d>0?"var(--red)":"var(--text)" }}>{m.r.toFixed(2)}%</td>
