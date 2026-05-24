@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ToastProvider }   from "@/context/ToastContext";
-import Sidebar      from "@/components/Sidebar";
-import TrialBanner  from "@/components/TrialBanner";
+import Sidebar          from "@/components/Sidebar";
+import TrialBanner      from "@/components/TrialBanner";
+import CommandPalette   from "@/components/CommandPalette";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -28,6 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             {children}
           </div>
         </div>
+        <CommandPalette />
       </SidebarProvider>
     </ToastProvider>
   );
