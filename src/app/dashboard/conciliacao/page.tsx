@@ -192,6 +192,12 @@ export default function ConciliacaoPage() {
     sem_liquidacao: transacoes.filter(t => t.status === "sem_liquidacao").length,
   };
 
+  const totals = useMemo(() => ({
+    bruto:   filtered.reduce((s, t) => s + t.valorBruto,   0),
+    tarifa:  filtered.reduce((s, t) => s + t.tarifa,       0),
+    liquido: filtered.reduce((s, t) => s + t.valorLiquido, 0),
+  }), [filtered]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Topbar title="Conciliação" subtitle="Cruzamento de vendas vs. liquidações dos adquirentes" />
@@ -264,8 +270,42 @@ export default function ConciliacaoPage() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="card overflow-hidden">
+        {/* Mobile card list — hidden on md+ */}
+        <div className="md:hidden space-y-2">
+          {paginated.length === 0 ? (
+            <div className="card px-5 py-10 text-center text-xs" style={{ color: "var(--muted)" }}>
+              Nenhuma transação encontrada.
+            </div>
+          ) : paginated.map(t => {
+            const sc = statusMap[t.status];
+            return (
+              <button key={t.id} onClick={() => openModal(t)} className="card w-full p-4 text-left space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-mono text-xs font-bold" style={{ color: "var(--blue)" }}>{t.id}</span>
+                  <span className={`badge ${sc.badgeCls} shrink-0`}>{sc.icon}{sc.label}</span>
+                </div>
+                <p className="text-xs" style={{ color: "var(--text)" }}>{t.descricao}</p>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                  <span style={{ color: "var(--muted)" }}>{t.data} · {t.tipo}</span>
+                  <span className={`badge ${t.adquirente === "PagSeguro" ? "badge-amber" : "badge-blue"}`}>{t.adquirente}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span style={{ color: "var(--muted)" }}>Bruto: <span style={{ color: "var(--text)", fontWeight: 600 }}>{brl(t.valorBruto)}</span></span>
+                  <span style={{ color: "var(--muted)" }}>Líquido: <span style={{ color: "var(--green)", fontWeight: 700 }}>{brl(t.valorLiquido)}</span></span>
+                </div>
+                {t.observacao && (
+                  <div className="flex items-start gap-2 px-2.5 py-2 rounded-lg text-xs"
+                    style={{ background: sc.bg, border: `1px solid ${sc.borderColor}`, color: t.status === "divergencia" ? "var(--amber)" : "var(--red)" }}>
+                    <AlertTriangle size={11} className="shrink-0 mt-0.5" /> {t.observacao}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Table — hidden on mobile */}
+        <div className="card overflow-hidden hidden md:block">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
@@ -332,40 +372,54 @@ export default function ConciliacaoPage() {
                   );
                 })}
               </tbody>
+              {filtered.length > 0 && (
+                <tfoot>
+                  <tr style={{ borderTop: "2px solid var(--border)", background: "var(--surface-2)" }}>
+                    <td colSpan={5} className="px-4 py-2.5 text-xs font-semibold" style={{ color: "var(--muted)" }}>
+                      Total ({filtered.length} transações)
+                    </td>
+                    <td className="px-4 py-2.5 text-xs font-bold tabular-nums" style={{ color: "var(--text)" }}>{brl(totals.bruto)}</td>
+                    <td className="px-4 py-2.5 text-xs font-bold tabular-nums" style={{ color: "var(--red)" }}>−{brl(totals.tarifa)}</td>
+                    <td className="px-4 py-2.5 text-xs font-bold tabular-nums" style={{ color: "var(--green)" }}>{brl(totals.liquido)}</td>
+                    <td />
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-4 py-3"
-            style={{ borderTop: "1px solid var(--border)", background: "var(--surface-2)" }}>
-            <p className="text-xs" style={{ color: "var(--muted)" }}>
-              {filtered.length === 0
-                ? "0 registros"
-                : `${(safePage - 1) * PAGE_SIZE + 1}–${Math.min(safePage * PAGE_SIZE, filtered.length)} de ${filtered.length}`}
-            </p>
-            <div className="flex items-center gap-1">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-                className="p-1.5 rounded-lg transition-all disabled:opacity-30"
-                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
-                <ChevronLeft size={14} />
+        </div>
+
+        {/* Pagination — shared for both mobile and desktop */}
+        <div className="card flex items-center justify-between px-4 py-3"
+          style={{ background: "var(--surface-2)" }}>
+          <p className="text-xs" style={{ color: "var(--muted)" }}>
+            {filtered.length === 0
+              ? "0 registros"
+              : `${(safePage - 1) * PAGE_SIZE + 1}–${Math.min(safePage * PAGE_SIZE, filtered.length)} de ${filtered.length}`}
+          </p>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+              className="p-1.5 rounded-lg transition-all disabled:opacity-30"
+              style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+              <ChevronLeft size={14} />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+              <button key={n} onClick={() => setPage(n)}
+                className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  background: safePage === n ? "var(--blue)" : "transparent",
+                  color:      safePage === n ? "#fff"        : "var(--text-2)",
+                  border:     safePage === n ? "none"        : "1px solid var(--border)",
+                }}>
+                {n}
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-                <button key={n} onClick={() => setPage(n)}
-                  className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
-                  style={{
-                    background: safePage === n ? "var(--blue)" : "transparent",
-                    color:      safePage === n ? "#fff"        : "var(--text-2)",
-                    border:     safePage === n ? "none"        : "1px solid var(--border)",
-                  }}>
-                  {n}
-                </button>
-              ))}
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-                className="p-1.5 rounded-lg transition-all disabled:opacity-30"
-                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
-                <ChevronRight size={14} />
-              </button>
-            </div>
+            ))}
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
+              className="p-1.5 rounded-lg transition-all disabled:opacity-30"
+              style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       </main>

@@ -113,6 +113,13 @@
   flex-shrink: 0;
 }
 
+/* ── Focus ring ─────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
 /* ── Print ──────────────────────────────────────────── */
 @media print {
   aside, header, .no-print { display: none !important; }
