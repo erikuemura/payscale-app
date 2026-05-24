@@ -97,7 +97,7 @@ function PasswordStrength({ pwd }: { pwd: string }) {
     <div style={{ marginTop: "0.5rem" }}>
       <div style={{ display: "flex", gap: "0.25rem", marginBottom: "0.25rem" }}>
         {[1, 2, 3, 4].map(i => (
-          <div key={i} style={{ height: 4, flex: 1, borderRadius: 99, transition: "background 0.3s", background: i <= score ? colors[score] : "#e2e8f0" }} />
+          <div key={i} style={{ height: 4, flex: 1, borderRadius: 99, transition: "background 0.3s", background: i <= score ? colors[score] : "var(--border)" }} />
         ))}
       </div>
       <p style={{ fontSize: 11, color: colors[score] }}>{labels[score]}</p>
@@ -254,7 +254,7 @@ export default function SignupPage() {
   const docMaxLen      = isPJ ? 18                    : 14; // chars formatados
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", background: "#fff" }}>
+    <div style={{ minHeight: "100vh", display: "flex", background: "var(--bg)" }}>
 
       {/* ══ Painel esquerdo ══ */}
       <div className="hidden lg:flex flex-col justify-between"
@@ -318,7 +318,7 @@ export default function SignupPage() {
           <button
             onClick={handleGoogle}
             disabled={oLoading}
-            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.625rem", padding: "0.625rem", borderRadius: 8, fontSize: "0.875rem", fontWeight: 600, border: "1px solid var(--border)", background: "#fff", color: "var(--text)", cursor: "pointer", marginBottom: "1rem", opacity: oLoading ? 0.6 : 1 }}>
+            style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.625rem", padding: "0.625rem", borderRadius: 8, fontSize: "0.875rem", fontWeight: 600, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", cursor: "pointer", marginBottom: "1rem", opacity: oLoading ? 0.6 : 1 }}>
             {oLoading ? "Conectando…" : <><GoogleIcon /> Continuar com Google</>}
           </button>
 
@@ -356,7 +356,7 @@ export default function SignupPage() {
                       display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
                       padding: "0.625rem", borderRadius: 8, fontSize: "0.75rem", fontWeight: 600,
                       border: `1.5px solid ${personType === type ? "var(--blue)" : "var(--border)"}`,
-                      background: personType === type ? "var(--blue-dim)" : "#fff",
+                      background: personType === type ? "var(--blue-dim)" : "var(--surface)",
                       color:      personType === type ? "var(--blue)"    : "var(--text-2)",
                       cursor: "pointer",
                     }}>
