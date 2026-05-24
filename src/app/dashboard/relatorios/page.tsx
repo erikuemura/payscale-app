@@ -278,7 +278,7 @@ export default function RelatoriosPage() {
                 </thead>
                 <tbody>
                   {hist.map((r,i)=>(
-                    <tr key={i} style={{borderTop:"1px solid var(--border)",background:i%2===0?"#fff":"var(--surface-2)"}}
+                    <tr key={i} style={{borderTop:"1px solid var(--border)",background:i%2===0?"var(--surface)":"var(--surface-2)"}}
                       className="hover:bg-blue-50/30 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2" style={{color:"var(--text)"}}>

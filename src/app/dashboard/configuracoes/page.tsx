@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Topbar from "@/components/Topbar";
 import { createClient } from "@/lib/supabase/client";
 import { User, Lock, CreditCard, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
@@ -22,10 +22,18 @@ function daysLeft(date: Date | null): number {
 }
 
 export default function ConfiguracoesPage() {
-  const router   = useRouter();
-  const supabase = createClient();
-  const { toast } = useToast();
-  const [tab, setTab] = useState<Tab>("perfil");
+  const router      = useRouter();
+  const searchParams = useSearchParams();
+  const supabase    = createClient();
+  const { toast }   = useToast();
+
+  const initialTab = (searchParams.get("tab") as Tab | null) ?? "perfil";
+  const [tab, setTab] = useState<Tab>(initialTab);
+
+  function switchTab(t: Tab) {
+    setTab(t);
+    router.replace(`/dashboard/configuracoes?tab=${t}`, { scroll: false });
+  }
 
   /* ── Perfil ── */
   const [name,       setName]       = useState("");
@@ -166,7 +174,7 @@ export default function ConfiguracoesPage() {
           <div className="flex gap-1 p-1 rounded-xl mb-6"
             style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
+              <button key={t.id} onClick={() => switchTab(t.id)}
                 className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all"
                 style={{
                   background: tab === t.id ? "var(--blue)" : "transparent",

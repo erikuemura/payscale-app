@@ -202,7 +202,7 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
 const chartAxisStyle = { fontSize: 11, fill: "#8896a8" };
 const chartGrid     = { strokeDasharray: "3 3", stroke: "#f1f5f9" };
 const tooltipStyle  = {
-  contentStyle: { background: "#fff", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, color: "var(--text)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" },
+  contentStyle: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, color: "var(--text)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formatter: (v: any) => [`${v}%`],
 };

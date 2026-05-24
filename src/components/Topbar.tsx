@@ -77,14 +77,18 @@ export default function Topbar({ title, subtitle }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Search hint */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg cursor-text"
+        {/* Search hint — opens Command Palette */}
+        <button
+          onClick={() => {
+            window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
+          }}
+          className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer hover:opacity-80 transition-all"
           style={{ background: "var(--surface-2)", border: "1px solid var(--border)", width: 210 }}>
           <Search size={13} style={{ color: "var(--muted)" }} />
-          <span className="text-xs flex-1" style={{ color: "var(--muted)" }}>Buscar...</span>
+          <span className="text-xs flex-1 text-left" style={{ color: "var(--muted)" }}>Buscar...</span>
           <span className="text-[10px] px-1.5 py-0.5 rounded font-medium"
             style={{ background: "var(--border)", color: "var(--muted)" }}>⌘K</span>
-        </div>
+        </button>
 
         {/* Notificações */}
         <div className="relative" ref={notifRef}>

@@ -248,19 +248,25 @@ export default function ChargebacksPage() {
       <Topbar title="Chargebacks" subtitle="Gestão de disputas e contestações" />
       <main className="flex-1 p-5 lg:p-8 space-y-5" style={{background:"var(--bg)"}}>
 
-        {/* KPIs */}
+        {/* KPIs — clicáveis para filtrar */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            {label:"Abertos",        value:String(abertos.length),color:"var(--amber)"},
-            {label:"Valor em Risco", value:brl(risk),            color:"var(--red)"  },
-            {label:"Taxa de Sucesso",value:`${taxa}%`,           color:"var(--green)"},
-            {label:"Total no Mês",   value:String(cbs.length),   color:"var(--text)" },
-          ].map(k=>(
-            <div key={k.label} className="card p-5">
-              <p className="text-xs font-medium mb-3" style={{color:"var(--muted)"}}>{k.label}</p>
-              <p className="text-2xl font-bold tabular-nums" style={{color:k.color}}>{k.value}</p>
-            </div>
-          ))}
+            {label:"Abertos",        value:String(abertos.length),color:"var(--amber)", filterVal: "aberto"     as CBStatus|"all"},
+            {label:"Valor em Risco", value:brl(risk),            color:"var(--red)",   filterVal: "aberto"     as CBStatus|"all"},
+            {label:"Taxa de Sucesso",value:`${taxa}%`,           color:"var(--green)", filterVal: "ganho"      as CBStatus|"all"},
+            {label:"Total no Mês",   value:String(cbs.length),   color:"var(--text)",  filterVal: "all"        as CBStatus|"all"},
+          ].map(k=>{
+            const isActive = filter === k.filterVal;
+            return (
+              <button key={k.label} onClick={() => { setFilter(k.filterVal); setPage(1); }}
+                className="card p-5 text-left transition-all hover:opacity-80"
+                style={{ outline: isActive ? `2px solid ${k.color}` : "none", outlineOffset: 2 }}>
+                <p className="text-xs font-medium mb-3" style={{color:"var(--muted)"}}>{k.label}</p>
+                <p className="text-2xl font-bold tabular-nums" style={{color:k.color}}>{k.value}</p>
+                {isActive && <p className="text-[10px] mt-1 font-medium" style={{color:k.color}}>Filtro ativo →</p>}
+              </button>
+            );
+          })}
         </div>
 
         {/* Urgent */}
@@ -281,7 +287,7 @@ export default function ChargebacksPage() {
         <div className="space-y-3">
           {/* Search */}
           <div className="flex items-center gap-2"
-            style={{ background: "white", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px" }}>
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px" }}>
             <Search size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
             <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
               placeholder="Buscar por cliente, ID ou motivo..."
@@ -300,8 +306,8 @@ export default function ChargebacksPage() {
               <button key={f} onClick={()=>{setFilter(f);setPage(1);}}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={{
-                  background:filter===f?"var(--blue)":"white",
-                  color:filter===f?"white":"var(--text-2)",
+                  background:filter===f?"var(--blue)":"var(--surface-2)",
+                  color:filter===f?"#fff":"var(--text-2)",
                   border:"1px solid var(--border)",
                   boxShadow:filter===f?"none":"0 1px 2px rgba(0,0,0,0.04)",
                 }}>

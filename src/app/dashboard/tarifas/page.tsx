@@ -47,7 +47,7 @@ const alertas = [
 const axisStyle = { fontSize: 10, fill: "#8896a8" };
 const grid = { strokeDasharray: "3 3", stroke: "#f1f5f9" };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ttStyle = { contentStyle: { background: "#fff", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
+const ttStyle = { contentStyle: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
 
 type Alerta = typeof alertas[number];
 
@@ -255,7 +255,7 @@ export default function TarifasPage() {
               </thead>
               <tbody>
                 {mdrData.map((m, i) => (
-                  <tr key={m.m} style={{ borderTop: "1px solid var(--border)", background: i%2===0?"white":"var(--surface-2)" }}
+                  <tr key={m.m} style={{ borderTop: "1px solid var(--border)", background: i%2===0?"var(--surface)":"var(--surface-2)" }}
                     className="hover:bg-blue-50/30 transition-colors">
                     <td className="px-5 py-3 font-medium" style={{ color: "var(--text)" }}>{m.m}</td>
                     <td className="px-5 py-3 tabular-nums" style={{ color: "var(--text-2)" }}>{m.c.toFixed(2)}%</td>
