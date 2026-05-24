@@ -14,6 +14,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar,
 } from "recharts";
+import CountUp from "@/components/CountUp";
 
 /* ── Tipos ─────────────────────────────────────────────── */
 interface UserInfo {
@@ -231,7 +232,7 @@ function DashboardContent() {
                   {k.up ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}{k.trend}
                 </span>
               </div>
-              <p className="text-2xl font-bold tabular-nums" style={{ color: "var(--text)" }}>{k.value}</p>
+              <p className="text-2xl font-bold tabular-nums" style={{ color: "var(--text)" }}><CountUp value={k.value} /></p>
               <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>{k.sub}</p>
             </div>
           ))}

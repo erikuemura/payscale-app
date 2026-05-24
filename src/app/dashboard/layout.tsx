@@ -23,9 +23,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <ToastProvider>
       <SidebarProvider>
+        {/* Skip to main content — accessibility */}
+        <a href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold"
+          style={{ background: "var(--blue)", color: "#fff" }}>
+          Ir para o conteúdo
+        </a>
         <div className="flex min-h-screen" style={{ background: "var(--bg)" }}>
           <Sidebar />
-          <div className="flex flex-col flex-1 min-w-0">
+          <div id="main-content" className="flex flex-col flex-1 min-w-0">
             <TrialBanner />
             <ErrorBoundary>{children}</ErrorBoundary>
           </div>

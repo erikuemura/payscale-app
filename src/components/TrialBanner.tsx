@@ -55,7 +55,8 @@ export default function TrialBanner() {
         style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}>
         Ver planos
       </Link>
-      <button onClick={dismiss} className="shrink-0 hover:opacity-70 transition-opacity p-0.5">
+      <button onClick={dismiss} className="shrink-0 hover:opacity-70 transition-opacity p-0.5"
+        aria-label="Fechar aviso de trial">
         <X size={13} />
       </button>
     </div>
