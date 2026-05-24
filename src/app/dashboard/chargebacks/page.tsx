@@ -81,6 +81,43 @@ function DetalhesModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
             ))}
           </div>
 
+          {/* Timeline */}
+          <div>
+            <p className="text-[10px] font-semibold mb-3 uppercase tracking-widest" style={{ color: "var(--muted)" }}>Linha do tempo</p>
+            <div className="space-y-0">
+              {[
+                { step: "Recebido",   done: true,  active: false },
+                { step: "Em análise", done: ["contestado","ganho","perdido"].includes(cb.status), active: cb.status === "aberto" },
+                { step: "Contestado", done: ["ganho","perdido"].includes(cb.status),              active: cb.status === "contestado" },
+                { step: "Resultado",  done: ["ganho","perdido"].includes(cb.status),              active: false,
+                  label: cb.status === "ganho" ? "Ganho ✓" : cb.status === "perdido" ? "Perdido ✗" : "Resultado" },
+              ].map((t, i, arr) => (
+                <div key={t.step} className="flex items-start gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                      style={{
+                        background: t.done ? "var(--green)" : t.active ? "var(--blue)" : "var(--border)",
+                        border: t.active ? "2px solid var(--blue)" : "none",
+                      }}>
+                      {t.done && <div className="w-2 h-2 rounded-full bg-white" />}
+                      {t.active && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+                    </div>
+                    {i < arr.length - 1 && (
+                      <div className="w-0.5 h-5 mt-0.5"
+                        style={{ background: t.done ? "var(--green)" : "var(--border)" }} />
+                    )}
+                  </div>
+                  <p className="text-xs pb-4 font-medium" style={{
+                    color: t.done ? "var(--green)" : t.active ? "var(--blue)" : "var(--muted)",
+                    marginTop: 2,
+                  }}>
+                    {t.label ?? t.step}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {cb.descricao && (
             <div className="p-3 rounded-lg text-xs leading-relaxed"
               style={{ background: "var(--blue-dim)", border: "1px solid rgba(37,99,235,0.15)", color: "var(--text-2)" }}>

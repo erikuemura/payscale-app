@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Topbar from "@/components/Topbar";
 import { createClient } from "@/lib/supabase/client";
-import { User, Lock, CreditCard, CheckCircle, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { User, Lock, CreditCard, CheckCircle, AlertCircle, Eye, EyeOff, Trash2, X as XIcon } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
 type Tab = "perfil" | "senha" | "plano";
@@ -74,6 +74,8 @@ export default function ConfiguracoesPage() {
   const [trialEnds,  setTrialEnds]  = useState<Date | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [saveLoading,    setSaveLoading]    = useState(false);
+  const [deleteModal,    setDeleteModal]    = useState(false);
+  const [deleteConfirm,  setDeleteConfirm]  = useState("");
   const [profileMsg,     setProfileMsg]     = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   /* ── Senha ── */
@@ -311,6 +313,19 @@ export default function ConfiguracoesPage() {
                   </button>
                 </form>
               )}
+
+              {/* Danger zone */}
+              <div className="pt-4 mt-4" style={{ borderTop: "1px solid var(--border)" }}>
+                <p className="text-xs font-semibold mb-1" style={{ color: "var(--red)" }}>Zona de perigo</p>
+                <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>
+                  A exclusão da conta é permanente e remove todos os dados associados.
+                </p>
+                <button onClick={() => setDeleteModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-red-50 transition-all"
+                  style={{ border: "1px solid var(--red)", color: "var(--red)" }}>
+                  <Trash2 size={13} /> Excluir minha conta
+                </button>
+              </div>
             </div>
           )}
 
@@ -467,6 +482,63 @@ export default function ConfiguracoesPage() {
 
         </div>
       </main>
+
+      {/* Delete account confirmation modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)" }}
+          onMouseDown={e => { if (e.target === e.currentTarget) { setDeleteModal(false); setDeleteConfirm(""); } }}>
+          <div className="card w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+              <div className="flex items-center gap-2">
+                <Trash2 size={15} style={{ color: "var(--red)" }} />
+                <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Excluir conta</p>
+              </div>
+              <button onClick={() => { setDeleteModal(false); setDeleteConfirm(""); }}
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                style={{ color: "var(--muted)" }}>
+                <XIcon size={15} />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <div className="p-3 rounded-xl text-xs leading-relaxed"
+                style={{ background: "var(--red-dim)", border: "1px solid rgba(220,38,38,0.2)", color: "var(--red)" }}>
+                Esta ação é irreversível. Todos os seus dados — integrações, histórico e relatórios — serão permanentemente excluídos.
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                  Digite <strong style={{ color: "var(--text)" }}>EXCLUIR</strong> para confirmar
+                </label>
+                <input
+                  className="input-base"
+                  value={deleteConfirm}
+                  onChange={e => setDeleteConfirm(e.target.value)}
+                  placeholder="EXCLUIR"
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 px-5 pb-5">
+              <button onClick={() => { setDeleteModal(false); setDeleteConfirm(""); }}
+                className="flex-1 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all"
+                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+                Cancelar
+              </button>
+              <button
+                disabled={deleteConfirm !== "EXCLUIR"}
+                onClick={() => {
+                  toast("Por favor entre em contato com o suporte para excluir sua conta.", "info");
+                  setDeleteModal(false);
+                  setDeleteConfirm("");
+                }}
+                className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all disabled:opacity-40"
+                style={{ background: "var(--red)", color: "#fff" }}>
+                Excluir permanentemente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
