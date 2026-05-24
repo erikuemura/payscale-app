@@ -251,14 +251,17 @@ export default function ConciliacaoPage() {
               <Search size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
               <input ref={searchRef} value={search} onChange={e => applySearch(e.target.value)}
                 placeholder="Buscar por ID ou descrição... (/ ou ⌘F)"
+                aria-label="Buscar transações"
                 className="bg-transparent outline-none text-xs flex-1 min-w-0"
                 style={{ color: "var(--text)" }} />
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <input type="date" value={dateFrom} onChange={e => applyFrom(e.target.value)}
+                aria-label="Data inicial"
                 className="input-base text-xs" style={{ width: 140, padding: "8px 10px" }} />
               <span className="text-xs" style={{ color: "var(--muted)" }}>até</span>
               <input type="date" value={dateTo} onChange={e => applyTo(e.target.value)}
+                aria-label="Data final"
                 className="input-base text-xs" style={{ width: 140, padding: "8px 10px" }} />
               {(dateFrom || dateTo) && (
                 <button onClick={() => { applyFrom(""); applyTo(""); }}

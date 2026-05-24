@@ -379,6 +379,7 @@ export default function ChargebacksPage() {
             <Search size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
             <input ref={searchRef} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
               placeholder="Buscar por cliente, ID ou motivo... (/ ou ⌘F)"
+              aria-label="Buscar chargebacks"
               className="bg-transparent outline-none text-xs flex-1"
               style={{ color: "var(--text)" }} />
             {search && (
