@@ -114,7 +114,7 @@ function EmailConfigModal({ onClose, onSave }: { onClose: () => void; onSave: (c
             <Mail size={15} style={{ color: "var(--blue)" }} />
             <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Envio Automático por E-mail</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" style={{ color: "var(--muted)" }}>
+          <button onClick={onClose} aria-label="Fechar" className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" style={{ color: "var(--muted)" }}>
             <XIcon size={15} />
           </button>
         </div>
