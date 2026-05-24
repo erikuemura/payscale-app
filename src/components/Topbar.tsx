@@ -23,9 +23,22 @@ export default function Topbar({ title, subtitle }: Props) {
 
   const [menuOpen,   setMenuOpen]   = useState(false);
   const [notifOpen,  setNotifOpen]  = useState(false);
-  const [readIds,    setReadIds]    = useState<number[]>([4, 5]);
   const [userEmail,  setUserEmail]  = useState<string | null>(null);
   const [userName,   setUserName]   = useState<string | null>(null);
+
+  // Persist read notification IDs in localStorage
+  const [readIds, setReadIds] = useState<number[]>(() => {
+    if (typeof window === "undefined") return [4, 5];
+    try {
+      const saved = localStorage.getItem("notif_read");
+      return saved ? JSON.parse(saved) : [4, 5];
+    } catch { return [4, 5]; }
+  });
+
+  function markRead(ids: number[]) {
+    setReadIds(ids);
+    try { localStorage.setItem("notif_read", JSON.stringify(ids)); } catch { /* noop */ }
+  }
 
   const menuRef  = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -54,7 +67,7 @@ export default function Topbar({ title, subtitle }: Props) {
     router.refresh();
   }
 
-  function markAllRead() { setReadIds(NOTIFS.map(n => n.id)); }
+  function markAllRead() { markRead(NOTIFS.map(n => n.id)); }
 
   const unread = NOTIFS.filter(n => !readIds.includes(n.id)).length;
   const initials = userName
@@ -123,7 +136,7 @@ export default function Topbar({ title, subtitle }: Props) {
                   const isRead = readIds.includes(n.id);
                   return (
                     <Link key={n.id} href={n.href}
-                      onClick={() => { setReadIds(prev => [...new Set([...prev, n.id])]); setNotifOpen(false); }}
+                      onClick={() => { markRead([...new Set([...readIds, n.id])]); setNotifOpen(false); }}
                       className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
                       style={{ borderBottom: "1px solid var(--border)", opacity: isRead ? 0.55 : 1 }}>
                       <div className="mt-0.5 shrink-0" style={{ color: n.color }}>{n.icon}</div>

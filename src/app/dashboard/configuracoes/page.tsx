@@ -8,6 +8,36 @@ import { useToast } from "@/context/ToastContext";
 
 type Tab = "perfil" | "senha" | "plano";
 
+/* ── Password strength indicator ── */
+function pwdStrength(pwd: string): { level: number; label: string; color: string } {
+  if (!pwd) return { level: 0, label: "", color: "var(--border)" };
+  let score = 0;
+  if (pwd.length >= 8)  score++;
+  if (pwd.length >= 12) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  if (score <= 1) return { level: 1, label: "Fraca",  color: "var(--red)"   };
+  if (score <= 3) return { level: 2, label: "Média",  color: "var(--amber)" };
+  return             { level: 3, label: "Forte",  color: "var(--green)" };
+}
+
+function PasswordStrength({ pwd }: { pwd: string }) {
+  const { level, label, color } = pwdStrength(pwd);
+  if (!pwd) return null;
+  return (
+    <div className="mt-2">
+      <div className="flex gap-1 mb-1">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-1 flex-1 rounded-full transition-all"
+            style={{ background: i <= level ? color : "var(--border)" }} />
+        ))}
+      </div>
+      <p className="text-[11px] font-medium" style={{ color }}>{label}</p>
+    </div>
+  );
+}
+
 function formatDoc(doc: string | null | undefined): string {
   if (!doc) return "—";
   const d = doc.replace(/\D/g, "");
@@ -188,9 +218,17 @@ export default function ConfiguracoesPage() {
           {/* ── Perfil ── */}
           {tab === "perfil" && (
             <div className="card p-6 space-y-5">
-              <div>
-                <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text)" }}>Informações da conta</p>
-                <p className="text-xs" style={{ color: "var(--muted)" }}>Edite seu nome de exibição.</p>
+              <div className="flex items-center gap-4">
+                {/* Avatar */}
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shrink-0"
+                  style={{ background: "var(--blue)", color: "#fff" }}>
+                  {name ? name.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase() : (email?.[0]?.toUpperCase() ?? "U")}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text)" }}>{name || "Usuário"}</p>
+                  <p className="text-xs" style={{ color: "var(--muted)" }}>{email}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Edite seu nome de exibição abaixo.</p>
+                </div>
               </div>
 
               {profileLoading ? (
@@ -317,6 +355,7 @@ export default function ConfiguracoesPage() {
                       {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
                     </button>
                   </div>
+                  <PasswordStrength pwd={newPwd} />
                 </div>
 
                 <div>

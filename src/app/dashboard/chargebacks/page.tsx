@@ -215,14 +215,22 @@ function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
 /* ── Página principal ── */
 export default function ChargebacksPage() {
   const { toast } = useToast();
-  const [filter,  setFilter]  = useState<CBStatus|"all">("all");
-  const [search,  setSearch]  = useState("");
-  const [page,    setPage]    = useState(1);
-  const [detalhes,setDetalhes]= useState<CB|null>(null);
-  const [contestar,setContestar]=useState<CB|null>(null);
+  const [filter,   setFilter]    = useState<CBStatus|"all">("all");
+  const [search,   setSearch]    = useState("");
+  const [page,     setPage]      = useState(1);
+  const [sortKey,  setSortKey]   = useState<keyof CB | null>("data");
+  const [sortDir,  setSortDir]   = useState<"asc"|"desc">("desc");
+  const [detalhes, setDetalhes]  = useState<CB|null>(null);
+  const [contestar,setContestar] = useState<CB|null>(null);
 
-  const filtered = useMemo(() =>
-    cbs.filter(c => {
+  function handleSort(key: keyof CB) {
+    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(key); setSortDir("asc"); }
+    setPage(1);
+  }
+
+  const filtered = useMemo(() => {
+    const base = cbs.filter(c => {
       const matchFilter = filter === "all" || c.status === filter;
       const q = search.toLowerCase();
       const matchSearch = !q ||
@@ -230,8 +238,16 @@ export default function ChargebacksPage() {
         c.id.toLowerCase().includes(q) ||
         c.motivo.toLowerCase().includes(q);
       return matchFilter && matchSearch;
-    }),
-  [filter, search]);
+    });
+    if (!sortKey) return base;
+    return [...base].sort((a, b) => {
+      const av = a[sortKey]; const bv = b[sortKey];
+      const cmp = typeof av === "number" && typeof bv === "number"
+        ? av - bv
+        : String(av).localeCompare(String(bv), "pt-BR");
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [filter, search, sortKey, sortDir]);
 
   const totalPages = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
   const safePage   = Math.min(page,totalPages);
@@ -300,7 +316,7 @@ export default function ChargebacksPage() {
             )}
           </div>
 
-          {/* Status filters */}
+          {/* Status filters + sort */}
           <div className="flex items-center gap-2 flex-wrap">
             {(["all","aberto","contestado","ganho","perdido"] as const).map(f=>(
               <button key={f} onClick={()=>{setFilter(f);setPage(1);}}
@@ -315,6 +331,27 @@ export default function ChargebacksPage() {
                 {f!=="all"&&<span className="ml-1.5 opacity-70">{cbs.filter(c=>c.status===f).length}</span>}
               </button>
             ))}
+            <div className="ml-auto flex items-center gap-1.5">
+              <span className="text-xs" style={{ color: "var(--muted)" }}>Ordenar:</span>
+              {([
+                { label: "Data",   key: "data"   as keyof CB },
+                { label: "Valor",  key: "valor"  as keyof CB },
+                { label: "Prazo",  key: "prazo"  as keyof CB },
+              ]).map(s => (
+                <button key={s.key} onClick={() => handleSort(s.key)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                  style={{
+                    background: sortKey === s.key ? "var(--blue-dim)" : "var(--surface-2)",
+                    color:      sortKey === s.key ? "var(--blue)"     : "var(--text-2)",
+                    border:     "1px solid var(--border)",
+                  }}>
+                  {s.label}
+                  {sortKey === s.key && (
+                    <span style={{ fontSize: 10 }}>{sortDir === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
