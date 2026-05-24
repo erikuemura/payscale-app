@@ -1,6 +1,7 @@
 "use client";
+import { useState } from "react";
 import Topbar from "@/components/Topbar";
-import { AlertTriangle, CheckCircle, Bell, Download } from "lucide-react";
+import { AlertTriangle, CheckCircle, Bell, Download, X as XIcon, FileText, Send } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
 function exportMDR(data: { m: string; c: number; r: number; d: number }[]) {
@@ -48,8 +49,104 @@ const grid = { strokeDasharray: "3 3", stroke: "#f1f5f9" };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ttStyle = { contentStyle: { background: "#fff", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
 
+type Alerta = typeof alertas[number];
+
+function ContestarModal({ alerta, onClose, onSend }: { alerta: Alerta; onClose: () => void; onSend: () => void }) {
+  const [msg, setMsg] = useState("");
+  const [step, setStep] = useState<"form"|"done">("form");
+
+  function submit() {
+    if (!msg.trim()) return;
+    setStep("done");
+    setTimeout(() => { onSend(); onClose(); }, 1800);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="card w-full max-w-md shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div className="flex items-center gap-2">
+            <FileText size={15} style={{ color: "var(--red)" }} />
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Contestar Cobrança Indevida</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors" style={{ color: "var(--muted)" }}>
+            <XIcon size={15} />
+          </button>
+        </div>
+
+        {step === "done" ? (
+          <div className="px-5 py-10 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "var(--green-dim)" }}>
+              <CheckCircle size={22} style={{ color: "var(--green)" }} />
+            </div>
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Contestação enviada!</p>
+            <p className="text-xs text-center" style={{ color: "var(--muted)" }}>
+              O adquirente foi notificado e tem até 10 dias para responder.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Alert summary */}
+            <div className="mx-5 mt-4 p-3 rounded-xl text-xs space-y-1.5"
+              style={{ background: "var(--red-dim)", border: "1px solid rgba(220,38,38,0.2)" }}>
+              <div className="flex justify-between">
+                <span style={{ color: "var(--muted)" }}>Adquirente</span>
+                <span className="font-semibold" style={{ color: "var(--text)" }}>{alerta.adquirente}</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: "var(--muted)" }}>Modalidade</span>
+                <span className="font-semibold" style={{ color: "var(--text)" }}>{alerta.modalidade}</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: "var(--muted)" }}>Contratado vs. Cobrado</span>
+                <span className="font-semibold" style={{ color: "var(--red)" }}>{alerta.contratado}% → {alerta.cobrado}% (+{alerta.desvio}%)</span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color: "var(--muted)" }}>Impacto estimado</span>
+                <span className="font-bold" style={{ color: "var(--red)" }}>−R$ {alerta.impacto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+              </div>
+            </div>
+
+            {/* Message */}
+            <div className="px-5 mt-4">
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                Descrição da contestação
+              </label>
+              <textarea
+                value={msg}
+                onChange={e => setMsg(e.target.value)}
+                rows={4}
+                placeholder="Descreva o motivo da contestação e referencie o contrato ou aditivo que confirma a tarifa acordada..."
+                className="input-base resize-none text-xs"
+              />
+              <p className="text-[11px] mt-1" style={{ color: "var(--muted)" }}>
+                O adquirente receberá esta mensagem junto aos dados da auditoria automaticamente.
+              </p>
+            </div>
+
+            <div className="flex gap-3 px-5 py-4">
+              <button onClick={onClose}
+                className="flex-1 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all"
+                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>Cancelar</button>
+              <button onClick={submit} disabled={!msg.trim()}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
+                style={{ background: "var(--red)", color: "#fff" }}>
+                <Send size={13} /> Enviar contestação
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function TarifasPage() {
   const { toast } = useToast();
+  const [contesting, setContesting] = useState<Alerta | null>(null);
   const total = alertas.reduce((s, a) => s + a.impacto, 0);
   return (
     <div className="flex flex-col min-h-screen">
@@ -95,7 +192,8 @@ export default function TarifasPage() {
                   <p className="text-sm font-bold" style={{ color: "var(--red)" }}>−R$ {a.impacto.toLocaleString("pt-BR",{minimumFractionDigits:2})}</p>
                   <p className="text-[11px]" style={{ color: "var(--muted)" }}>impacto no mês</p>
                 </div>
-                <button className="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-50 transition-all shrink-0"
+                <button onClick={() => setContesting(a)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-50 transition-all shrink-0"
                   style={{ border: "1px solid var(--border)", color: "var(--red)" }}>Contestar</button>
               </div>
             ))}
@@ -178,6 +276,14 @@ export default function TarifasPage() {
           </div>
         </div>
       </main>
+
+      {contesting && (
+        <ContestarModal
+          alerta={contesting}
+          onClose={() => setContesting(null)}
+          onSend={() => { setContesting(null); toast("Contestação enviada ao adquirente!", "success"); }}
+        />
+      )}
     </div>
   );
 }

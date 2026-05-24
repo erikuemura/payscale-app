@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Topbar from "@/components/Topbar";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -178,10 +179,10 @@ const kpis = [
   { label: "Chargebacks Abertos", value: "5",           sub: "R$ 2.340 em risco",         trend: "−1",   up: false },
 ];
 const alertas = [
-  { type: "red",   text: "Tarifa MDR acima do contratado — Crédito 12x (+0,3%)", val: "−R$ 1.240", time: "Hoje, 09:14" },
-  { type: "red",   text: "Divergência na conciliação — 12 transações sem liquidação", val: "−R$ 8.750", time: "Hoje, 08:02" },
-  { type: "amber", text: "Chargeback recebido — prazo de contestação em 3 dias", val: "R$ 450",   time: "Ontem, 16:30" },
-  { type: "amber", text: "Tarifa MDR acima do contratado — Crédito 2x (+0,3%)",  val: "−R$ 380",  time: "Ontem, 11:45" },
+  { type: "red",   text: "Tarifa MDR acima do contratado — Crédito 12x (+0,3%)", val: "−R$ 1.240", time: "Hoje, 09:14",  href: "/dashboard/tarifas"    },
+  { type: "red",   text: "Divergência na conciliação — 12 transações sem liquidação", val: "−R$ 8.750", time: "Hoje, 08:02",  href: "/dashboard/conciliacao"},
+  { type: "amber", text: "Chargeback recebido — prazo de contestação em 3 dias", val: "R$ 450",   time: "Ontem, 16:30", href: "/dashboard/chargebacks" },
+  { type: "amber", text: "Tarifa MDR acima do contratado — Crédito 2x (+0,3%)",  val: "−R$ 380",  time: "Ontem, 11:45", href: "/dashboard/tarifas"    },
 ];
 
 function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) {
@@ -291,11 +292,18 @@ function DashboardContent() {
           <div className="card xl:col-span-2">
             <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
               <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Alertas Recentes</p>
-              <span className="badge badge-red">{alertas.length} ativos</span>
+              <div className="flex items-center gap-3">
+                <span className="badge badge-red">{alertas.length} ativos</span>
+                <Link href="/dashboard/tarifas" className="text-xs font-medium hover:underline" style={{ color: "var(--blue)" }}>
+                  Ver tudo →
+                </Link>
+              </div>
             </div>
             <div className="divide-y" style={{ borderColor: "var(--border)" }}>
               {alertas.map((a, i) => (
-                <div key={i} className="flex items-start gap-3 px-5 py-3.5">
+                <Link key={i} href={a.href}
+                  className="flex items-start gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors"
+                  style={{ display: "flex" }}>
                   <AlertTriangle size={14} className="mt-0.5 shrink-0"
                     style={{ color: a.type === "red" ? "var(--red)" : "var(--amber)" }} />
                   <div className="flex-1 min-w-0">
@@ -304,14 +312,17 @@ function DashboardContent() {
                   </div>
                   <span className="text-xs font-semibold tabular-nums shrink-0"
                     style={{ color: a.type === "red" ? "var(--red)" : "var(--amber)" }}>{a.val}</span>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
 
           <div className="card">
-            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
               <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Integrações</p>
+              <Link href="/dashboard/integracoes" className="text-xs font-medium hover:underline" style={{ color: "var(--blue)" }}>
+                Ver tudo →
+              </Link>
             </div>
             <div className="divide-y" style={{ borderColor: "var(--border)" }}>
               {[
@@ -319,7 +330,9 @@ function DashboardContent() {
                 { name: "Mercado Pago", ok: true,  detail: "987 transações · 5 min",    initials: "MP", color: "var(--blue)" },
                 { name: "Bling ERP",    ok: false, detail: "Não conectado",              initials: "BL", color: "#10b981" },
               ].map(s => (
-                <div key={s.name} className="flex items-center gap-3 px-5 py-3.5">
+                <Link key={s.name} href="/dashboard/integracoes"
+                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors"
+                  style={{ display: "flex" }}>
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0"
                     style={{ background: s.color + "18", color: s.color }}>{s.initials}</div>
                   <div className="flex-1 min-w-0">
@@ -330,8 +343,14 @@ function DashboardContent() {
                     style={{ background: s.ok ? "var(--green-dim)" : "#f1f5f9", color: s.ok ? "var(--green)" : "var(--muted)" }}>
                     {s.ok ? "Online" : "Off"}
                   </span>
-                </div>
+                </Link>
               ))}
+            </div>
+            <div className="px-5 py-3" style={{ borderTop: "1px solid var(--border)" }}>
+              <Link href="/dashboard/integracoes"
+                className="text-xs font-medium hover:underline" style={{ color: "var(--blue)" }}>
+                Gerenciar integrações →
+              </Link>
             </div>
           </div>
         </div>

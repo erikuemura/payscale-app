@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import Topbar from "@/components/Topbar";
-import { CheckCircle, AlertTriangle, XCircle, Search, Download, ArrowLeftRight, ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Search, Download, ArrowLeftRight, ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown, Copy, Check, X as XIcon } from "lucide-react";
 
 type RecStatus = "ok" | "divergencia" | "sem_liquidacao";
 
@@ -55,6 +55,81 @@ function exportCSV(rows: Transacao[]) {
   URL.revokeObjectURL(url);
 }
 
+/* ── Detalhe Modal ─────────────────────────────────────── */
+function DetalhesModal({ txn, onClose }: { txn: Transacao; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const sc = statusMap[txn.status];
+
+  function copyId() {
+    navigator.clipboard.writeText(txn.id).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="w-full max-w-md rounded-2xl overflow-hidden"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div>
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Detalhes da Transação</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="font-mono text-xs font-bold" style={{ color: "var(--blue)" }}>{txn.id}</span>
+              <button onClick={copyId}
+                className="flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded transition-all"
+                style={{ background: copied ? "var(--green-dim)" : "var(--surface-2)", color: copied ? "var(--green)" : "var(--muted)", border: "1px solid var(--border)" }}>
+                {copied ? <Check size={11} /> : <Copy size={11} />}
+                {copied ? "Copiado!" : "Copiar ID"}
+              </button>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            style={{ color: "var(--muted)" }}>
+            <XIcon size={16} />
+          </button>
+        </div>
+
+        {/* Status banner */}
+        <div className="mx-5 mt-4 flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium"
+          style={{ background: sc.bg, border: `1px solid ${sc.borderColor}`, color: txn.status === "ok" ? "var(--green)" : txn.status === "divergencia" ? "var(--amber)" : "var(--red)" }}>
+          {sc.icon} {sc.label}
+          {txn.observacao && <span className="ml-2 font-normal" style={{ color: "inherit", opacity: 0.85 }}>— {txn.observacao}</span>}
+        </div>
+
+        {/* Fields */}
+        <div className="px-5 py-4 space-y-3">
+          {[
+            { label: "Descrição",    value: txn.descricao },
+            { label: "Adquirente",  value: txn.adquirente },
+            { label: "Tipo",        value: txn.tipo },
+            { label: "Data",        value: txn.data },
+            { label: "Valor Bruto", value: brl(txn.valorBruto) },
+            { label: "Tarifa",      value: `−${brl(txn.tarifa)}` },
+            { label: "Valor Líquido", value: brl(txn.valorLiquido) },
+          ].map(f => (
+            <div key={f.label} className="flex items-start justify-between gap-4">
+              <span className="text-xs shrink-0" style={{ color: "var(--muted)", minWidth: 100 }}>{f.label}</span>
+              <span className="text-xs font-medium text-right" style={{ color: "var(--text)" }}>{f.value}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-5 pb-5">
+          <button onClick={onClose}
+            className="w-full py-2.5 rounded-xl text-xs font-semibold transition-all"
+            style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}>
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ConciliacaoPage() {
   const [filterStatus, setFilterStatus] = useState<RecStatus | "all">("all");
   const [search,   setSearch]   = useState("");
@@ -63,6 +138,9 @@ export default function ConciliacaoPage() {
   const [page,     setPage]     = useState(1);
   const [sortKey,  setSortKey]  = useState<keyof Transacao | null>(null);
   const [sortDir,  setSortDir]  = useState<"asc" | "desc">("asc");
+  const [selected, setSelected] = useState<Transacao | null>(null);
+  const openModal  = useCallback((t: Transacao) => setSelected(t), []);
+  const closeModal = useCallback(() => setSelected(null), []);
 
   function handleSort(key: keyof Transacao) {
     if (sortKey === key) {
@@ -219,7 +297,8 @@ export default function ConciliacaoPage() {
                   const sc = statusMap[t.status];
                   return (
                     <React.Fragment key={t.id}>
-                      <tr style={{ borderBottom: t.observacao ? "none" : "1px solid var(--border)" }}
+                      <tr onClick={() => openModal(t)}
+                        style={{ borderBottom: t.observacao ? "none" : "1px solid var(--border)", cursor: "pointer" }}
                         className="hover:bg-[var(--surface-2)] transition-colors">
                         <td className="px-4 py-3 font-mono font-semibold" style={{ color: "var(--blue)" }}>{t.id}</td>
                         <td className="px-4 py-3 whitespace-nowrap" style={{ color: "var(--muted)" }}>{t.data}</td>
@@ -286,6 +365,8 @@ export default function ConciliacaoPage() {
           </div>
         </div>
       </main>
+
+      {selected && <DetalhesModal txn={selected} onClose={closeModal} />}
     </div>
   );
 }

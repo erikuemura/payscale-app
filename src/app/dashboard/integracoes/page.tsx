@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Topbar from "@/components/Topbar";
-import { CheckCircle, XCircle, RefreshCw, Plus, Eye, EyeOff, ExternalLink, Link2 } from "lucide-react";
+import { CheckCircle, XCircle, RefreshCw, Plus, Eye, EyeOff, ExternalLink, Link2, AlertTriangle } from "lucide-react";
 
 type Status = "connected" | "disconnected";
 interface Integration { id: string; name: string; initials: string; description: string; status: Status; lastSync?: string; transactions?: number; volume?: string; color: string; }
@@ -57,9 +57,57 @@ function ConnectModal({ name, onClose }: { name: string; onClose: () => void }) 
   );
 }
 
+function DisconnectModal({ name, onConfirm, onClose }: { name: string; onConfirm: () => void; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="card p-6 w-full max-w-sm shadow-xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="icon-box shrink-0" style={{ background: "var(--red-dim)", color: "var(--red)" }}>
+            <AlertTriangle size={17} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Desconectar {name}?</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Esta ação irá remover a integração</p>
+          </div>
+        </div>
+        <p className="text-xs leading-relaxed mb-5"
+          style={{ color: "var(--text-2)", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
+          Ao desconectar, a sincronização automática será interrompida e os dados históricos serão mantidos. Você pode reconectar a qualquer momento.
+        </p>
+        <div className="flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all"
+            style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+            Cancelar
+          </button>
+          <button onClick={onConfirm}
+            className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
+            style={{ background: "var(--red)", color: "#fff" }}>
+            Sim, desconectar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function IntegracoesPage() {
-  const [modal, setModal] = useState<string | null>(null);
+  const [modal,      setModal]      = useState<string | null>(null);
+  const [disconnect, setDisconnect] = useState<string | null>(null);
+  const [statuses,   setStatuses]   = useState<Record<string, Status>>(
+    Object.fromEntries(integrations.map(i => [i.id, i.status]))
+  );
   const selected = integrations.find(i => i.id === modal);
+  const disconnectTarget = integrations.find(i => i.id === disconnect);
+
+  function confirmDisconnect() {
+    if (disconnect) {
+      setStatuses(prev => ({ ...prev, [disconnect]: "disconnected" }));
+      setDisconnect(null);
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -82,71 +130,78 @@ export default function IntegracoesPage() {
 
         {/* Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {integrations.map(intg => (
-            <div key={intg.id} className="card overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4"
-                style={{ borderBottom: "1px solid var(--border)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold"
-                    style={{ background: intg.color + "18", color: intg.color }}>{intg.initials}</div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{intg.name}</p>
-                    <span className={`badge ${intg.status === "connected" ? "badge-green" : "badge-muted"}`}>
-                      {intg.status === "connected" ? "Conectado" : "Não conectado"}
-                    </span>
+          {integrations.map(intg => {
+            const st = statuses[intg.id];
+            return (
+              <div key={intg.id} className="card overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-4"
+                  style={{ borderBottom: "1px solid var(--border)" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold"
+                      style={{ background: intg.color + "18", color: intg.color }}>{intg.initials}</div>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{intg.name}</p>
+                      <span className={`badge ${st === "connected" ? "badge-green" : "badge-muted"}`}>
+                        {st === "connected" ? "Conectado" : "Não conectado"}
+                      </span>
+                    </div>
                   </div>
+                  {st === "connected"
+                    ? <CheckCircle size={18} style={{ color: "var(--green)" }} />
+                    : <XCircle size={18} style={{ color: "var(--border-2)" }} />
+                  }
                 </div>
-                {intg.status === "connected"
-                  ? <CheckCircle size={18} style={{ color: "var(--green)" }} />
-                  : <XCircle size={18} style={{ color: "var(--border-2)" }} />
-                }
-              </div>
 
-              <div className="px-5 py-4">
-                <p className="text-xs leading-relaxed mb-4" style={{ color: "var(--text-2)" }}>{intg.description}</p>
+                <div className="px-5 py-4">
+                  <p className="text-xs leading-relaxed mb-4" style={{ color: "var(--text-2)" }}>{intg.description}</p>
 
-                {intg.status === "connected" && (
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    {[
-                      { label: "Transações", value: intg.transactions?.toLocaleString("pt-BR") },
-                      { label: "Volume",     value: intg.volume },
-                      { label: "Última sync",value: intg.lastSync },
-                    ].map(m => (
-                      <div key={m.label} className="p-3 rounded-lg text-center"
-                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                        <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{m.value}</p>
-                        <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>{m.label}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex gap-2 flex-wrap">
-                  {intg.status === "connected" ? (
-                    <>
-                      <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-all"
-                        style={{ border: "1px solid var(--border)", color: "var(--blue)" }}>
-                        <RefreshCw size={12} /> Sincronizar
-                      </button>
-                      <button className="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-50 transition-all"
-                        style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>Configurar</button>
-                      <button className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:bg-red-50"
-                        style={{ border: "1px solid var(--border)", color: "var(--red)" }}>Desconectar</button>
-                    </>
-                  ) : (
-                    <button onClick={() => setModal(intg.id)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
-                      style={{ background: "var(--blue)", color: "#fff" }}>
-                      <Plus size={13} /> Conectar
-                    </button>
+                  {st === "connected" && (
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                      {[
+                        { label: "Transações", value: intg.transactions?.toLocaleString("pt-BR") },
+                        { label: "Volume",     value: intg.volume },
+                        { label: "Última sync",value: intg.lastSync },
+                      ].map(m => (
+                        <div key={m.label} className="p-3 rounded-lg text-center"
+                          style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                          <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{m.value}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: "var(--muted)" }}>{m.label}</p>
+                        </div>
+                      ))}
+                    </div>
                   )}
+
+                  <div className="flex gap-2 flex-wrap">
+                    {st === "connected" ? (
+                      <>
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-50 transition-all"
+                          style={{ border: "1px solid var(--border)", color: "var(--blue)" }}>
+                          <RefreshCw size={12} /> Sincronizar
+                        </button>
+                        <button className="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-50 transition-all"
+                          style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>Configurar</button>
+                        <button onClick={() => setDisconnect(intg.id)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:bg-red-50"
+                          style={{ border: "1px solid var(--border)", color: "var(--red)" }}>Desconectar</button>
+                      </>
+                    ) : (
+                      <button onClick={() => setModal(intg.id)}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
+                        style={{ background: "var(--blue)", color: "#fff" }}>
+                        <Plus size={13} /> Conectar
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </main>
       {modal && selected && <ConnectModal name={selected.name} onClose={() => setModal(null)} />}
+      {disconnect && disconnectTarget && (
+        <DisconnectModal name={disconnectTarget.name} onConfirm={confirmDisconnect} onClose={() => setDisconnect(null)} />
+      )}
     </div>
   );
 }
