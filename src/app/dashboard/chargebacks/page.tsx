@@ -47,7 +47,7 @@ function DetalhesModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
             <ShieldAlert size={16} style={{ color: "var(--muted)" }} />
             <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Detalhes do Chargeback</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} aria-label="Fechar" className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
             <X size={15} style={{ color: "var(--muted)" }} />
           </button>
         </div>
@@ -56,7 +56,7 @@ function DetalhesModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-mono text-sm font-semibold" style={{ color: "var(--blue)" }}>{cb.id}</span>
-              <button onClick={() => copy(cb.id, "ID")} className="hover:opacity-60 transition-opacity">
+              <button onClick={() => copy(cb.id, "ID")} aria-label="Copiar ID" className="hover:opacity-60 transition-opacity">
                 <Copy size={12} style={{ color: "var(--muted)" }} />
               </button>
             </div>
@@ -173,7 +173,7 @@ function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
             <AlertTriangle size={16} style={{ color: "var(--red)" }} />
             <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Contestar Chargeback</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} aria-label="Fechar" className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
             <X size={15} style={{ color: "var(--muted)" }} />
           </button>
         </div>
@@ -382,7 +382,7 @@ export default function ChargebacksPage() {
               className="bg-transparent outline-none text-xs flex-1"
               style={{ color: "var(--text)" }} />
             {search && (
-              <button onClick={() => { setSearch(""); setPage(1); }} className="hover:opacity-60 transition-opacity">
+              <button onClick={() => { setSearch(""); setPage(1); }} aria-label="Limpar busca" className="hover:opacity-60 transition-opacity">
                 <X size={13} style={{ color: "var(--muted)" }} />
               </button>
             )}
@@ -508,6 +508,7 @@ export default function ChargebacksPage() {
             </p>
             <div className="flex items-center gap-1">
               <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={safePage===1}
+                aria-label="Página anterior"
                 className="p-1.5 rounded-lg border transition-all disabled:opacity-30"
                 style={{borderColor:"var(--border)",color:"var(--text-2)"}}>
                 <ChevronLeft size={14}/>
@@ -522,6 +523,7 @@ export default function ChargebacksPage() {
                   }}>{n}</button>
               ))}
               <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={safePage===totalPages}
+                aria-label="Próxima página"
                 className="p-1.5 rounded-lg border transition-all disabled:opacity-30"
                 style={{borderColor:"var(--border)",color:"var(--text-2)"}}>
                 <ChevronRight size={14}/>

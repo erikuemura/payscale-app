@@ -166,7 +166,7 @@ export default function CommandPalette() {
             style={{ color: "var(--text)" }}
           />
           {query && (
-            <button onClick={() => setQuery("")} style={{ color: "var(--muted)" }}>
+            <button onClick={() => setQuery("")} aria-label="Limpar busca" style={{ color: "var(--muted)" }}>
               <X size={14} />
             </button>
           )}

@@ -36,7 +36,7 @@ function ConnectModal({ name, onClose }: { name: string; onClose: () => void }) 
             <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>Access Token / Secret</label>
             <div className="relative">
               <input className="input-base" style={{ paddingRight: 42 }} type={show ? "text" : "password"} value={secret} onChange={e => setSecret(e.target.value)} placeholder="••••••••••••••••" />
-              <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--muted)" }}>
+              <button type="button" onClick={() => setShow(!show)} aria-label={show ? "Ocultar token" : "Mostrar token"} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--muted)" }}>
                 {show ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>

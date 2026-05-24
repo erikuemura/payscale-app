@@ -88,7 +88,7 @@ function DetalhesModal({ txn, onClose }: { txn: Transacao; onClose: () => void }
               </button>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+          <button onClick={onClose} aria-label="Fechar" className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
             style={{ color: "var(--muted)" }}>
             <XIcon size={16} />
           </button>
@@ -438,6 +438,7 @@ export default function ConciliacaoPage() {
           </p>
           <div className="flex items-center gap-1">
             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
+              aria-label="Página anterior"
               className="p-1.5 rounded-lg transition-all disabled:opacity-30"
               style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
               <ChevronLeft size={14} />
@@ -454,6 +455,7 @@ export default function ConciliacaoPage() {
               </button>
             ))}
             <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
+              aria-label="Próxima página"
               className="p-1.5 rounded-lg transition-all disabled:opacity-30"
               style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
               <ChevronRight size={14} />
