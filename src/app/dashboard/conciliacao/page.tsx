@@ -365,6 +365,8 @@ export default function ConciliacaoPage() {
                   ] as { label: string; key: keyof Transacao }[]).map(h => (
                     <th key={h.key}
                       onClick={() => handleSort(h.key)}
+                      scope="col"
+                      aria-sort={sortKey === h.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
                       className="px-4 py-3 text-left font-semibold whitespace-nowrap cursor-pointer select-none hover:opacity-75 transition-opacity"
                       style={{ color: sortKey === h.key ? "var(--blue)" : "var(--muted)" }}>
                       {h.label}<SortIcon col={h.key} />

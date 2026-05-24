@@ -128,6 +128,8 @@ function EmailConfigModal({ onClose, onSave }: { onClose: () => void; onSave: (c
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{cfg.label}</p>
                 <button onClick={() => toggleActive(i)}
+                  role="switch" aria-checked={cfg.active}
+                  aria-label={`${cfg.label} — envio automático`}
                   className="relative w-9 h-5 rounded-full transition-colors shrink-0"
                   style={{ background: cfg.active ? "var(--blue)" : "var(--border-2)" }}>
                   <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all"
