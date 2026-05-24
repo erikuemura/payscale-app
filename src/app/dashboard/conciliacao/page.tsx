@@ -72,7 +72,7 @@ function DetalhesModal({ txn, onClose }: { txn: Transacao; onClose: () => void }
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-md rounded-2xl overflow-hidden"
+      <div role="dialog" aria-modal="true" aria-label="Detalhes da transação" className="w-full max-w-md rounded-2xl overflow-hidden"
         style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
         {/* Header */}
         <div className="flex items-start justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>

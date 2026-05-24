@@ -142,6 +142,19 @@
   animation: fade-in 0.18s ease-out both;
 }
 
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-ping,
+  .animate-spin,
+  .animate-pulse {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Input ──────────────────────────────────────────── */
 .input-base {
   background: var(--surface);
