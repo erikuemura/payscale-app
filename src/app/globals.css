@@ -46,6 +46,35 @@
   }
 }
 
+/* ── Dark mode ──────────────────────────────────────────── */
+.dark {
+  color-scheme: dark;
+  --bg:        #0f172a;
+  --sidebar:   #1e293b;
+  --surface:   #1e293b;
+  --surface-2: #0f172a;
+  --border:    #334155;
+  --border-2:  #475569;
+  --text:      #f1f5f9;
+  --text-2:    #94a3b8;
+  --muted:     #64748b;
+  --blue-dim:  rgba(37,99,235,0.18);
+  --blue-mid:  rgba(37,99,235,0.30);
+  --green-dim: rgba(5,150,105,0.18);
+  --amber-dim: rgba(180,83,9,0.18);
+  --red-dim:   rgba(220,38,38,0.18);
+}
+.dark .card         { box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+.dark .input-base   { background: var(--surface); }
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover { background-color: #334155; }
+.dark .hover\:bg-red-50:hover   { background-color: rgba(220,38,38,0.1); }
+.dark .hover\:bg-blue-50:hover  { background-color: rgba(37,99,235,0.12); }
+.dark .bg-white,
+.dark .bg-gray-50  { background-color: var(--surface); }
+.dark .divide-y > * { border-color: var(--border); }
+
+/* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 4px; }

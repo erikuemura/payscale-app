@@ -6,8 +6,9 @@ import { useSidebar } from "@/context/SidebarContext";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, Link2, ArrowLeftRight, Percent,
-  ShieldAlert, BarChart3, Zap, Settings, LogOut, X, Globe,
+  ShieldAlert, BarChart3, Zap, Settings, LogOut, X, Globe, Sun, Moon,
 } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 
 const nav = [
   { href: "/dashboard",             icon: LayoutDashboard, label: "Visão Geral"  },
@@ -41,6 +42,7 @@ export default function Sidebar() {
   const path     = usePathname();
   const router   = useRouter();
   const { isOpen, close } = useSidebar();
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const [userName, setUserName]     = useState("Carregando...");
   const [userInitial, setUserInitial] = useState("?");
@@ -98,6 +100,13 @@ export default function Sidebar() {
 
       {/* Bottom */}
       <div className="px-3 pb-4 space-y-0.5" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+        {/* Dark mode toggle */}
+        <button onClick={toggleTheme}
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
+          style={{ color: "var(--text-2)" }}>
+          {theme === "dark" ? <Sun size={16} strokeWidth={1.8} /> : <Moon size={16} strokeWidth={1.8} />}
+          {theme === "dark" ? "Modo claro" : "Modo escuro"}
+        </button>
         <Link href="/site"
           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-50"
           style={{ color: "var(--text-2)" }}>
