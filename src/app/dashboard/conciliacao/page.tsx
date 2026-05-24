@@ -200,6 +200,7 @@ export default function ConciliacaoPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Conciliação | PayScale Intelligence</title>
       <Topbar title="Conciliação" subtitle="Cruzamento de vendas vs. liquidações dos adquirentes" />
 
       <main className="flex-1 p-4 lg:p-8 space-y-5">

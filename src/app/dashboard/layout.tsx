@@ -3,7 +3,8 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import { ToastProvider }   from "@/context/ToastContext";
 import Sidebar          from "@/components/Sidebar";
 import TrialBanner      from "@/components/TrialBanner";
-import CommandPalette   from "@/components/CommandPalette";
+import CommandPalette          from "@/components/CommandPalette";
+import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
 import ErrorBoundary    from "@/components/ErrorBoundary";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -37,6 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </div>
         </div>
         <CommandPalette />
+        <KeyboardShortcutsModal />
       </SidebarProvider>
     </ToastProvider>
   );

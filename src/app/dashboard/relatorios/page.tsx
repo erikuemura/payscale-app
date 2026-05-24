@@ -223,6 +223,7 @@ export default function RelatoriosPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Relatórios | PayScale Intelligence</title>
       <Topbar title="Relatórios" subtitle="Gere e exporte relatórios financeiros completos"/>
       <main className="flex-1 p-5 lg:p-8 space-y-6" style={{background:"var(--bg)"}}>
 

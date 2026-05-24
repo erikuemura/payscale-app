@@ -218,6 +218,7 @@ function DashboardContent() {
   };
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Visão Geral | PayScale Intelligence</title>
       <Topbar title="Visão Geral" subtitle="Maio 2026 · 2 integrações ativas" />
       <main className="flex-1 p-5 lg:p-8 space-y-5" style={{ background: "var(--bg)" }}>
 
@@ -293,8 +294,8 @@ function DashboardContent() {
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={mdrData} barCategoryGap={10} margin={{ left: -12, right: 4 }}>
                 <CartesianGrid {...chartGrid} vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#8896a8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#8896a8" }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
+                <XAxis dataKey="name" tick={chartAxisStyle} axisLine={false} tickLine={false} />
+                <YAxis tick={chartAxisStyle} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
                 <Tooltip {...tooltipStyle} />
                 <Bar dataKey="contratado" name="Contratado" fill="var(--blue)" radius={[3,3,0,0]} />
                 <Bar dataKey="cobrado"    name="Cobrado"    fill="var(--red)"  radius={[3,3,0,0]} opacity={0.8} />
@@ -356,7 +357,7 @@ function DashboardContent() {
                     <p className="text-[11px] truncate" style={{ color: "var(--muted)" }}>{s.detail}</p>
                   </div>
                   <span className="badge"
-                    style={{ background: s.ok ? "var(--green-dim)" : "#f1f5f9", color: s.ok ? "var(--green)" : "var(--muted)" }}>
+                    style={{ background: s.ok ? "var(--green-dim)" : "var(--border)", color: s.ok ? "var(--green)" : "var(--muted)" }}>
                     {s.ok ? "Online" : "Off"}
                   </span>
                 </Link>

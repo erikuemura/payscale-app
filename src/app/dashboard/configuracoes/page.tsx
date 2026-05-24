@@ -197,16 +197,29 @@ export default function ConfiguracoesPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Configurações | PayScale Intelligence</title>
       <Topbar title="Configurações" subtitle="Gerencie seu perfil, segurança e plano" />
 
       <main className="flex-1 p-5 lg:p-8" style={{ background: "var(--bg)" }}>
         <div style={{ maxWidth: 640, margin: "0 auto" }}>
 
           {/* Tabs */}
-          <div className="flex gap-1 p-1 rounded-xl mb-6"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div role="tablist" aria-label="Configurações"
+            className="flex gap-1 p-1 rounded-xl mb-6"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+            onKeyDown={(e) => {
+              const idx = tabs.findIndex(t => t.id === tab);
+              if (e.key === "ArrowRight") { e.preventDefault(); switchTab(tabs[(idx + 1) % tabs.length].id); }
+              if (e.key === "ArrowLeft")  { e.preventDefault(); switchTab(tabs[(idx - 1 + tabs.length) % tabs.length].id); }
+              if (e.key === "Home")       { e.preventDefault(); switchTab(tabs[0].id); }
+              if (e.key === "End")        { e.preventDefault(); switchTab(tabs[tabs.length - 1].id); }
+            }}>
             {tabs.map(t => (
-              <button key={t.id} onClick={() => switchTab(t.id)}
+              <button key={t.id}
+                role="tab"
+                aria-selected={tab === t.id}
+                tabIndex={tab === t.id ? 0 : -1}
+                onClick={() => switchTab(t.id)}
                 className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all"
                 style={{
                   background: tab === t.id ? "var(--blue)" : "transparent",

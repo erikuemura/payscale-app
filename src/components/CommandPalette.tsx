@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import {
   LayoutDashboard, Link2, ArrowLeftRight, Percent,
   ShieldAlert, BarChart3, Settings, LogOut, Sun, Moon,
-  Globe, Search, X, ArrowRight,
+  Globe, Search, X, ArrowRight, Keyboard,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { createClient } from "@/lib/supabase/client";
@@ -53,6 +53,7 @@ export default function CommandPalette() {
     { id:"theme",        label: theme==="dark"?"Ativar modo claro":"Ativar modo escuro",
                                                         description:"Alternar tema da interface",          icon: theme==="dark"?<Sun size={15}/>:<Moon size={15}/>,
                                                                                                            action:()=>{ toggleTheme(); close(); },                                   group:"Ações",    keywords:"dark light modo escuro claro tema" },
+    { id:"shortcuts",    label:"Atalhos de teclado",    description:"Ver todos os atalhos",               icon:<Keyboard size={15}/>,        action:()=>{ close(); window.dispatchEvent(new KeyboardEvent("keydown",{key:"?",bubbles:true})); }, group:"Ações", keywords:"keyboard shortcuts teclas atalho ajuda help" },
     { id:"logout",       label:"Sair da conta",         description:"Encerrar sessão",                    icon:<LogOut size={15}/>,          action:handleLogout,                    group:"Ações",    keywords:"sair logout deslogar" },
   ];
 

@@ -154,6 +154,7 @@ export default function TarifasPage() {
   const ttStyle = { contentStyle: { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }, formatter: (v: any) => [`${v}%`] };
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Tarifas & MDR | PayScale Intelligence</title>
       <Topbar title="Tarifas & MDR" subtitle="Taxas cobradas vs. contratadas" />
       <main className="flex-1 p-5 lg:p-8 space-y-5" style={{ background: "var(--bg)" }}>
 
@@ -226,8 +227,8 @@ export default function TarifasPage() {
             <p className="text-xs mb-5" style={{ color: "var(--muted)" }}>PagSeguro vs. Mercado Pago</p>
             <ResponsiveContainer width="100%" height={220}>
               <RadarChart data={radarData}>
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="m" tick={{ fontSize: 10, fill: "#8896a8" }} />
+                <PolarGrid stroke={theme === "dark" ? "#334155" : "#e2e8f0"} />
+                <PolarAngleAxis dataKey="m" tick={{ fontSize: 10, fill: theme === "dark" ? "#64748b" : "#8896a8" }} />
                 <Radar name="PagSeguro"   dataKey="PS" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.15} strokeWidth={2} />
                 <Radar name="Mercado Pago" dataKey="MP" stroke="var(--blue)" fill="var(--blue)" fillOpacity={0.15} strokeWidth={2} />
                 <Legend wrapperStyle={{ fontSize: 11, color: "var(--muted)" }} />

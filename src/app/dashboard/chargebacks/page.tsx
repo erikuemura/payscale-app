@@ -298,6 +298,7 @@ export default function ChargebacksPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Chargebacks | PayScale Intelligence</title>
       <Topbar title="Chargebacks" subtitle="Gestão de disputas e contestações" />
       <main className="flex-1 p-5 lg:p-8 space-y-5" style={{background:"var(--bg)"}}>
 

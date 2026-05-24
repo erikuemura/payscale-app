@@ -117,6 +117,7 @@ export default function IntegracoesPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Integrações | PayScale Intelligence</title>
       <Topbar title="Integrações" subtitle="Gerencie suas conexões com adquirentes e ERPs" />
       <main className="flex-1 p-5 lg:p-8 space-y-5" style={{ background: "var(--bg)" }}>
 

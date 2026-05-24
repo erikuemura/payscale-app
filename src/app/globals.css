@@ -103,7 +103,7 @@
 .badge-green  { background: var(--green-dim); color: var(--green); }
 .badge-amber  { background: var(--amber-dim); color: var(--amber); }
 .badge-red    { background: var(--red-dim);   color: var(--red);   }
-.badge-muted  { background: #f1f5f9; color: var(--muted); }
+.badge-muted  { background: var(--border); color: var(--muted); }
 
 /* ── Icon box ───────────────────────────────────────── */
 .icon-box {
