@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Topbar from "@/components/Topbar";
 import { CheckCircle, XCircle, RefreshCw, Plus, Eye, EyeOff, ExternalLink, Link2, AlertTriangle } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
 
 type Status = "connected" | "disconnected";
 interface Integration { id: string; name: string; initials: string; description: string; status: Status; lastSync?: string; transactions?: number; volume?: string; color: string; }
@@ -94,6 +95,7 @@ function DisconnectModal({ name, onConfirm, onClose }: { name: string; onConfirm
 }
 
 export default function IntegracoesPage() {
+  const { toast } = useToast();
   const [modal,      setModal]      = useState<string | null>(null);
   const [disconnect, setDisconnect] = useState<string | null>(null);
   const [syncing,    setSyncing]    = useState<string | null>(null);
@@ -105,14 +107,20 @@ export default function IntegracoesPage() {
 
   function confirmDisconnect() {
     if (disconnect) {
+      const intg = integrations.find(i => i.id === disconnect);
       setStatuses(prev => ({ ...prev, [disconnect]: "disconnected" }));
       setDisconnect(null);
+      toast(`${intg?.name ?? "Integração"} desconectada.`, "info");
     }
   }
 
   function handleSync(id: string) {
+    const intg = integrations.find(i => i.id === id);
     setSyncing(id);
-    setTimeout(() => setSyncing(null), 2000);
+    setTimeout(() => {
+      setSyncing(null);
+      toast(`${intg?.name ?? "Integração"} sincronizada com sucesso!`);
+    }, 2000);
   }
 
   return (
@@ -121,19 +129,27 @@ export default function IntegracoesPage() {
       <Topbar title="Integrações" subtitle="Gerencie suas conexões com adquirentes e ERPs" />
       <main className="flex-1 p-5 lg:p-8 space-y-5" style={{ background: "var(--bg)" }}>
 
-        {/* Summary */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: "Conectadas",  value: "2", color: "var(--green)", bg: "var(--green-dim)" },
-            { label: "Disponíveis", value: "4", color: "var(--blue)",  bg: "var(--blue-dim)"  },
-            { label: "Com erro",    value: "0", color: "var(--muted)", bg: "#f1f5f9"           },
-          ].map(s => (
-            <div key={s.label} className="card p-5 flex items-center gap-4">
-              <p className="text-3xl font-bold tabular-nums" style={{ color: s.color }}>{s.value}</p>
-              <p className="text-sm" style={{ color: "var(--muted)" }}>{s.label}</p>
+        {/* Summary — dynamic based on statuses state */}
+        {(() => {
+          const connectedCount   = Object.values(statuses).filter(s => s === "connected").length;
+          const totalCount       = integrations.length;
+          const availableCount   = totalCount - connectedCount;
+          const summary = [
+            { label: "Conectadas",  value: String(connectedCount), color: "var(--green)", bg: "var(--green-dim)" },
+            { label: "Disponíveis", value: String(availableCount), color: "var(--blue)",  bg: "var(--blue-dim)"  },
+            { label: "Com erro",    value: "0",                    color: "var(--muted)", bg: "var(--border)"    },
+          ];
+          return (
+            <div className="grid grid-cols-3 gap-4">
+              {summary.map(s => (
+                <div key={s.label} className="card p-5 flex items-center gap-4">
+                  <p className="text-3xl font-bold tabular-nums" style={{ color: s.color }}>{s.value}</p>
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>{s.label}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
 
         {/* Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

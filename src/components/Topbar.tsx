@@ -57,8 +57,12 @@ export default function Topbar({ title, subtitle }: Props) {
       if (menuRef.current  && !menuRef.current.contains(e.target as Node))  setMenuOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
     }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") { setMenuOpen(false); setNotifOpen(false); }
+    }
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", handler); document.removeEventListener("keydown", onKey); };
   }, []);
 
   async function handleLogout() {
@@ -118,7 +122,8 @@ export default function Topbar({ title, subtitle }: Props) {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 top-11 w-80 rounded-xl overflow-hidden z-50"
+            <div role="dialog" aria-label="Notificações" aria-live="polite"
+              className="absolute right-0 top-11 w-80 rounded-xl overflow-hidden z-50"
               style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
               <div className="flex items-center justify-between px-4 py-3"
                 style={{ borderBottom: "1px solid var(--border)" }}>
@@ -169,7 +174,9 @@ export default function Topbar({ title, subtitle }: Props) {
             className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold cursor-pointer transition-all hover:opacity-90"
             style={{ background: "var(--blue)", color: "#fff" }}
             title={userEmail ?? undefined}
-            aria-label="Menu do usuário">
+            aria-label="Menu do usuário"
+            aria-expanded={menuOpen}
+            aria-haspopup="menu">
             {initials}
           </button>
 

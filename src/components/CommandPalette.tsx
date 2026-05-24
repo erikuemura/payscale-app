@@ -187,6 +187,7 @@ export default function CommandPalette() {
           <span><kbd className="font-mono">↑↓</kbd> navegar</span>
           <span><kbd className="font-mono">↵</kbd> selecionar</span>
           <span><kbd className="font-mono">Esc</kbd> fechar</span>
+          <span className="ml-auto"><kbd className="font-mono">?</kbd> atalhos</span>
         </div>
       </div>
     </div>

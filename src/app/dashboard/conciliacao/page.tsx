@@ -281,8 +281,19 @@ export default function ConciliacaoPage() {
         {/* Mobile card list — hidden on md+ */}
         <div className="md:hidden space-y-2">
           {paginated.length === 0 ? (
-            <div className="card px-5 py-10 text-center text-xs" style={{ color: "var(--muted)" }}>
-              Nenhuma transação encontrada.
+            <div className="card px-5 py-12 flex flex-col items-center gap-3 text-center">
+              <div className="w-11 h-11 rounded-full flex items-center justify-center"
+                style={{ background: "var(--surface-2)" }}>
+                <ArrowLeftRight size={18} style={{ color: "var(--muted)" }} />
+              </div>
+              <p className="text-sm font-medium" style={{ color: "var(--text)" }}>
+                Nenhuma transação encontrada
+              </p>
+              <p className="text-xs max-w-[200px]" style={{ color: "var(--muted)" }}>
+                {search || filterStatus !== "all"
+                  ? "Tente ajustar os filtros aplicados."
+                  : "Não há transações para exibir."}
+              </p>
             </div>
           ) : paginated.map(t => {
             const sc = statusMap[t.status];

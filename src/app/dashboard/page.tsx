@@ -201,7 +201,11 @@ function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: 
       {payload.map(p => (
         <div key={p.name} className="flex justify-between gap-4 mt-1">
           <span style={{ color: p.color }}>{p.name}</span>
-          <span style={{ color: "var(--text)" }}>R$ {(p.value / 1000).toFixed(0)}k</span>
+          <span style={{ color: "var(--text)" }}>
+            R$ {p.value >= 1000
+              ? `${(p.value / 1000).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 1 })}k`
+              : p.value.toLocaleString("pt-BR")}
+          </span>
         </div>
       ))}
     </div>
