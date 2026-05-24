@@ -44,6 +44,7 @@ function OnboardingState({ user }: { user: UserInfo }) {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <title>Começar | PayScale Intelligence</title>
       <Topbar title="Visão Geral" />
 
       <main className="flex-1 p-5 lg:p-8" style={{ background: "var(--bg)" }}>

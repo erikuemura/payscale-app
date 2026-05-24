@@ -344,9 +344,9 @@ export default function ConciliacaoPage() {
 
         {/* Table — hidden on mobile */}
         <div className="card overflow-hidden hidden md:block">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
             <table className="w-full text-xs">
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}>
                   {([
                     { label: "ID",         key: "id"          },
