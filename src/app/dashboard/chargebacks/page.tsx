@@ -2,7 +2,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import Topbar from "@/components/Topbar";
 import { AlertTriangle, Clock, CheckCircle, XCircle, FileText, ShieldAlert,
-  ChevronLeft, ChevronRight, Search, X, Copy, ExternalLink } from "lucide-react";
+  ChevronLeft, ChevronRight, Search, X, Copy, ExternalLink, Download } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 
 const PAGE_SIZE = 4;
@@ -249,6 +249,22 @@ function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
   );
 }
 
+/* ── CSV export ── */
+function exportChargebacksCSV(rows: CB[]) {
+  const header = ["ID","Data","Cliente","Adquirente","Motivo","Valor (R$)","Prazo (dias)","Status"];
+  const statusLabel: Record<CBStatus,string> = { aberto:"Aberto", contestado:"Contestado", ganho:"Ganho", perdido:"Perdido" };
+  const lines = rows.map(r => [
+    r.id, r.data, r.cliente, r.adquirente, r.motivo,
+    r.valor.toFixed(2).replace(".",","), r.prazo, statusLabel[r.status],
+  ].join(";"));
+  const csv = [header.join(";"), ...lines].join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = "chargebacks.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
+
 /* ── Página principal ── */
 export default function ChargebacksPage() {
   const { toast } = useToast();
@@ -259,20 +275,22 @@ export default function ChargebacksPage() {
   const [sortDir,  setSortDir]   = useState<"asc"|"desc">("desc");
   const [detalhes, setDetalhes]  = useState<CB|null>(null);
   const [contestar,setContestar] = useState<CB|null>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const searchRef   = useRef<HTMLInputElement>(null);
+  const filteredRef = useRef<CB[]>([]);
 
-  // ⌘F / / focuses search
+  // ⌘F / / focuses search; ⌘E exports
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (detalhes || contestar) return;
       if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") { e.preventDefault(); exportChargebacksCSV(filteredRef.current); toast("Chargebacks exportados!"); }
       if (e.key === "/" && (e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
         e.preventDefault(); searchRef.current?.focus();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [detalhes, contestar]);
+  }, [detalhes, contestar, toast]);
 
   function handleSort(key: keyof CB) {
     if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -300,6 +318,7 @@ export default function ChargebacksPage() {
     });
   }, [filter, search, sortKey, sortDir]);
 
+  filteredRef.current = filtered; // keep ref in sync for keyboard handler
   const totalPages = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
   const safePage   = Math.min(page,totalPages);
   const paginated  = filtered.slice((safePage-1)*PAGE_SIZE, safePage*PAGE_SIZE);
@@ -353,8 +372,9 @@ export default function ChargebacksPage() {
 
         {/* Search + Filters */}
         <div className="space-y-3">
-          {/* Search */}
-          <div className="flex items-center gap-2"
+          {/* Search + Export row */}
+          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1"
             style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px" }}>
             <Search size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
             <input ref={searchRef} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
@@ -366,6 +386,13 @@ export default function ChargebacksPage() {
                 <X size={13} style={{ color: "var(--muted)" }} />
               </button>
             )}
+          </div>
+          <button
+            onClick={() => { exportChargebacksCSV(filtered); toast("Chargebacks exportados!"); }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-all shrink-0"
+            style={{ background: "var(--blue)", color: "#fff" }}>
+            <Download size={13} /> CSV
+          </button>
           </div>
 
           {/* Status filters + sort */}

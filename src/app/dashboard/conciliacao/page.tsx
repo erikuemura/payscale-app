@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import Topbar from "@/components/Topbar";
 import { CheckCircle, AlertTriangle, XCircle, Search, Download, ArrowLeftRight, ChevronLeft, ChevronRight, ChevronsUpDown, ChevronUp, ChevronDown, Copy, Check, X as XIcon } from "lucide-react";
+import { useToast } from "@/context/ToastContext";
 
 type RecStatus = "ok" | "divergencia" | "sem_liquidacao";
 
@@ -131,6 +132,7 @@ function DetalhesModal({ txn, onClose }: { txn: Transacao; onClose: () => void }
 }
 
 export default function ConciliacaoPage() {
+  const { toast } = useToast();
   const [filterStatus, setFilterStatus] = useState<RecStatus | "all">("all");
   const [search,   setSearch]   = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -141,20 +143,22 @@ export default function ConciliacaoPage() {
   const [selected, setSelected] = useState<Transacao | null>(null);
   const openModal  = useCallback((t: Transacao) => setSelected(t), []);
   const closeModal = useCallback(() => setSelected(null), []);
-  const searchRef  = useRef<HTMLInputElement>(null);
+  const searchRef   = useRef<HTMLInputElement>(null);
+  const filteredRef = useRef<Transacao[]>([]);
 
-  // ⌘F / / focuses search
+  // ⌘F / / focuses search; ⌘E exports
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (selected) return; // don't capture when modal open
       if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") { e.preventDefault(); exportCSV(filteredRef.current); toast("Conciliação exportada!"); }
       if (e.key === "/" && (e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
         e.preventDefault(); searchRef.current?.focus();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selected]);
+  }, [selected, toast]);
 
   function handleSort(key: keyof Transacao) {
     if (sortKey === key) {
@@ -191,6 +195,7 @@ export default function ConciliacaoPage() {
     });
   }, [filterStatus, search, dateFrom, dateTo, sortKey, sortDir]);
 
+  filteredRef.current = filtered; // keep ref in sync for keyboard handler
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage   = Math.min(page, totalPages);
   const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -284,7 +289,7 @@ export default function ConciliacaoPage() {
                 Limpar tudo
               </button>
             )}
-            <button onClick={() => exportCSV(filtered)}
+            <button onClick={() => { exportCSV(filtered); toast("Conciliação exportada!"); }}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all hover:opacity-80 ml-auto"
               style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}>
               <Download size={13} /> Exportar CSV
