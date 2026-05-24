@@ -455,8 +455,12 @@ export default function ConfiguracoesPage() {
               </div>
 
               {/* Plano Pro */}
-              <div className="card p-6">
-                <div className="flex items-start justify-between mb-4">
+              <div className="card p-6 relative overflow-hidden">
+                {/* Popular badge */}
+                <div className="absolute top-0 right-0 px-3 py-1 text-[10px] font-bold rounded-bl-lg"
+                  style={{ background: "var(--blue)", color: "#fff" }}>RECOMENDADO</div>
+
+                <div className="flex items-start justify-between mb-1 mt-1">
                   <div>
                     <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>PayScale Pro</p>
                     <p className="text-xs mt-0.5" style={{ color: "var(--muted)" }}>Acesso completo a todas as funcionalidades</p>
@@ -467,23 +471,26 @@ export default function ConfiguracoesPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-5">
+                <div className="h-px my-4" style={{ background: "var(--border)" }} />
+
+                <div className="space-y-2.5 mb-5">
                   {[
                     "Conciliação automática ilimitada",
                     "Alertas de MDR em tempo real",
                     "Gestão completa de chargebacks",
                     "Relatórios exportáveis (PDF e CSV)",
                     "Integrações com todos os adquirentes",
-                    "Suporte prioritário",
+                    "Suporte prioritário via chat",
                   ].map(f => (
                     <div key={f} className="flex items-center gap-2 text-xs" style={{ color: "var(--text-2)" }}>
-                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--green)" }} />
+                      <CheckCircle size={13} style={{ color: "var(--green)", flexShrink: 0 }} />
                       {f}
                     </div>
                   ))}
                 </div>
 
                 <button
+                  onClick={() => toast("Em breve! Entre em contato para conhecer os planos.", "info")}
                   className="w-full py-3 rounded-lg text-sm font-semibold hover:opacity-90 transition-all"
                   style={{ background: "var(--blue)", color: "#fff" }}>
                   Fazer upgrade para o Pro
