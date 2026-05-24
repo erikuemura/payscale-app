@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Zap, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Zap, ArrowRight, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 /* ── Google icon ── */
@@ -105,8 +105,8 @@ function LoginForm() {
         onClick={handleGoogle}
         disabled={oLoading}
         className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-lg text-sm font-semibold transition-all hover:bg-gray-50 active:scale-[0.99] disabled:opacity-60 mb-4"
-        style={{ border: "1px solid var(--border)", background: "#fff", color: "var(--text)" }}>
-        {oLoading ? "Conectando…" : <><GoogleIcon /> Continuar com Google</>}
+        style={{ border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)" }}>
+        {oLoading ? <><Loader2 size={15} className="animate-spin" /> Conectando…</> : <><GoogleIcon /> Continuar com Google</>}
       </button>
 
       {/* Divisor */}
@@ -182,7 +182,7 @@ function LoginForm() {
           disabled={loading}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.99] disabled:opacity-60"
           style={{ background: "var(--blue)", color: "#fff" }}>
-          {loading ? "Entrando…" : <><span>Entrar</span> <ArrowRight size={15} /></>}
+          {loading ? <><Loader2 size={15} className="animate-spin" /> Entrando…</> : <><span>Entrar</span> <ArrowRight size={15} /></>}
         </button>
       </form>
 
@@ -200,7 +200,7 @@ function LoginForm() {
 /* ── Layout da página ── */
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex" style={{ background: "#fff" }}>
+    <div className="min-h-screen flex" style={{ background: "var(--bg)" }}>
 
       {/* ══ Painel esquerdo ══ */}
       <div className="hidden lg:flex flex-col justify-between w-[400px] shrink-0 p-12"
