@@ -164,7 +164,9 @@ export default function SitePageClient() {
           </div>
 
           <button className="md:hidden p-2 rounded-lg" style={{ color: "#4a5568" }}
-            onClick={() => setMobileOpen(v => !v)} aria-label="Abrir menu">
+            onClick={() => setMobileOpen(v => !v)}
+            aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+            aria-expanded={mobileOpen}>
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>

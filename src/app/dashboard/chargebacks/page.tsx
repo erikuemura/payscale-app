@@ -1,47 +1,97 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import Topbar from "@/components/Topbar";
-import { AlertTriangle, Clock, CheckCircle, XCircle, FileText, ShieldAlert,
-  ChevronLeft, ChevronRight, Search, X, Copy, ExternalLink, Download } from "lucide-react";
+import {
+  AlertTriangle, Clock, CheckCircle, XCircle, FileText, ShieldAlert,
+  ChevronLeft, ChevronRight, Search, X, Copy, Download, Loader2, ShieldCheck, Zap,
+} from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { createClient } from "@/lib/supabase/client";
+import type { Chargeback } from "@/lib/supabase/types";
+import Link from "next/link";
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 8;
 
 type CBStatus = "aberto" | "contestado" | "ganho" | "perdido";
+
 interface CB {
-  id: string; data: string; cliente: string; adquirente: "PagSeguro"|"Mercado Pago";
-  motivo: string; valor: number; prazo: number; status: CBStatus;
+  id: string;          // uuid
+  externalId: string;
+  data: string;        // "DD/MM/YYYY"
+  dataISO: string;
+  cliente: string;
+  adquirente: string;
+  motivo: string;
+  valor: number;
+  prazo: number;
+  status: CBStatus;
   descricao?: string;
 }
 
-const cbs: CB[] = [
-  { id:"CB-001", data:"20/05/2026", cliente:"Carlos M. Santos",  adquirente:"Mercado Pago", motivo:"Não reconhece a compra", valor:450,  prazo:3, status:"aberto",     descricao:"Cliente alega não reconhecer a transação realizada em 18/05/2026. Compra de R$ 450,00 via crédito 1x." },
-  { id:"CB-002", data:"18/05/2026", cliente:"Ana Paula Lima",    adquirente:"PagSeguro",    motivo:"Produto não entregue",  valor:1200, prazo:5, status:"contestado",  descricao:"Cliente afirma que o produto adquirido em 15/05/2026 nunca foi entregue. Compra de R$ 1.200,00 parcelada em 3x." },
-  { id:"CB-003", data:"15/05/2026", cliente:"João R. Costa",     adquirente:"Mercado Pago", motivo:"Cobrança duplicada",    valor:380,  prazo:0, status:"ganho",        descricao:"Contestação aceita pelo adquirente. Comprovante de entrega validado com sucesso." },
-  { id:"CB-004", data:"12/05/2026", cliente:"Maria F. Oliveira", adquirente:"PagSeguro",    motivo:"Não reconhece a compra",valor:890,  prazo:0, status:"perdido",      descricao:"Chargeback não contestado dentro do prazo. Valor debitado da conta em 28/05/2026." },
-  { id:"CB-005", data:"10/05/2026", cliente:"Lucas T. Ferreira", adquirente:"Mercado Pago", motivo:"Produto com defeito",   valor:320,  prazo:8, status:"aberto",       descricao:"Cliente relata que o produto chegou com defeito e solicitou estorno via adquirente." },
-];
-
-const smap: Record<CBStatus,{label:string;cls:string;icon:React.ReactNode}> = {
-  aberto:     {label:"Aberto",     cls:"badge-amber",icon:<Clock size={11}/>},
-  contestado: {label:"Contestado", cls:"badge-blue", icon:<FileText size={11}/>},
-  ganho:      {label:"Ganho",      cls:"badge-green",icon:<CheckCircle size={11}/>},
-  perdido:    {label:"Perdido",    cls:"badge-red",  icon:<XCircle size={11}/>},
+const PROVIDER_LABEL: Record<string, string> = {
+  pagseguro: "PagSeguro", mercadopago: "Mercado Pago",
+  stone: "Stone", cielo: "Cielo",
 };
-const brl = (v:number)=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
-/* ── Modal de Detalhes ── */
-function DetalhesModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
+const smap: Record<CBStatus, { label: string; cls: string; icon: React.ReactNode }> = {
+  aberto:     { label: "Aberto",     cls: "badge-amber", icon: <Clock size={11}/> },
+  contestado: { label: "Contestado", cls: "badge-blue",  icon: <FileText size={11}/> },
+  ganho:      { label: "Ganho",      cls: "badge-green", icon: <CheckCircle size={11}/> },
+  perdido:    { label: "Perdido",    cls: "badge-red",   icon: <XCircle size={11}/> },
+};
+
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+/* ─── Converter DB → UI ─────────────────────────────────── */
+function mapCB(cb: Chargeback): CB {
+  const dateStr = cb.opened_at ?? cb.created_at.slice(0, 10);
+  const dt = new Date(dateStr + "T00:00:00");
+  return {
+    id:         cb.id,
+    externalId: cb.external_id ?? cb.id.slice(0, 8).toUpperCase(),
+    data:       dt.toLocaleDateString("pt-BR"),
+    dataISO:    dateStr,
+    cliente:    cb.customer_name ?? "Cliente desconhecido",
+    adquirente: PROVIDER_LABEL[cb.provider] ?? cb.provider,
+    motivo:     cb.reason ?? "—",
+    valor:      Number(cb.amount),
+    prazo:      cb.deadline_days ?? 0,
+    status:     (cb.status as CBStatus) ?? "aberto",
+    descricao:  (cb.metadata as Record<string, string>)?.descricao,
+  };
+}
+
+/* ─── Export CSV ─────────────────────────────────────────── */
+function exportCSV(rows: CB[]) {
+  const header = ["ID", "Data", "Cliente", "Adquirente", "Motivo", "Valor", "Prazo (dias)", "Status"];
+  const lines  = rows.map(cb => [
+    cb.externalId, cb.data, `"${cb.cliente}"`, cb.adquirente,
+    `"${cb.motivo}"`, brl(cb.valor), cb.prazo, smap[cb.status].label,
+  ].join(";"));
+  const csv  = ["﻿" + header.join(";"), ...lines].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a"); a.href = url; a.download = "chargebacks.csv"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Modal de detalhes ─────────────────────────────────── */
+function DetalhesModal({ cb, onClose, onContest }: {
+  cb: CB; onClose: () => void; onContest: (cb: CB) => void;
+}) {
   const { toast } = useToast();
   const s = smap[cb.status];
+
   function copy(text: string, label: string) {
     navigator.clipboard.writeText(text).then(() => toast(`${label} copiado!`));
   }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
       style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
       onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Detalhes do chargeback" className="card w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" aria-label="Detalhes do chargeback"
+        className="card w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-2">
             <ShieldAlert size={16} style={{ color: "var(--muted)" }} />
@@ -55,192 +105,148 @@ function DetalhesModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
           {/* ID + status */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-semibold" style={{ color: "var(--blue)" }}>{cb.id}</span>
-              <button onClick={() => copy(cb.id, "ID")} aria-label="Copiar ID" className="hover:opacity-60 transition-opacity">
+              <span className="font-mono text-sm font-semibold" style={{ color: "var(--blue)" }}>{cb.externalId}</span>
+              <button onClick={() => copy(cb.externalId, "ID")} aria-label="Copiar ID"
+                className="hover:opacity-60 transition-opacity">
                 <Copy size={12} style={{ color: "var(--muted)" }} />
               </button>
             </div>
-            <span className={`badge ${s.cls}`}>{s.icon}{s.label}</span>
+            <span className={`badge ${s.cls}`}>{s.icon} {s.label}</span>
           </div>
 
-          {/* Grid de campos */}
+          {/* Grid */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Cliente",     value: cb.cliente    },
-              { label: "Adquirente",  value: cb.adquirente },
-              { label: "Data",        value: cb.data       },
-              { label: "Valor",       value: brl(cb.valor) },
-              { label: "Motivo",      value: cb.motivo     },
-              ...(cb.status === "aberto" ? [{ label: "Prazo",
-                value: `${cb.prazo} dia${cb.prazo !== 1 ? "s" : ""} restante${cb.prazo !== 1 ? "s" : ""}` }] : []),
-            ].map(f => (
-              <div key={f.label} className="p-3 rounded-lg" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                <p className="text-[10px] font-semibold mb-1" style={{ color: "var(--muted)" }}>{f.label.toUpperCase()}</p>
-                <p className="text-xs font-medium" style={{ color: "var(--text)" }}>{f.value}</p>
+              { l: "Data",       v: cb.data       },
+              { l: "Cliente",    v: cb.cliente     },
+              { l: "Adquirente", v: cb.adquirente  },
+              { l: "Motivo",     v: cb.motivo      },
+              { l: "Valor",      v: brl(cb.valor)  },
+              { l: "Prazo",      v: cb.prazo > 0 ? `${cb.prazo} dias` : "Encerrado" },
+            ].map(({ l, v }) => (
+              <div key={l} className="p-3 rounded-xl"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                <p className="text-[10px] mb-0.5" style={{ color: "var(--muted)" }}>{l}</p>
+                <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>{v}</p>
               </div>
             ))}
           </div>
 
-          {/* Timeline */}
-          <div>
-            <p className="text-[10px] font-semibold mb-3 uppercase tracking-widest" style={{ color: "var(--muted)" }}>Linha do tempo</p>
-            <div className="space-y-0">
-              {[
-                { step: "Recebido",   done: true,  active: false },
-                { step: "Em análise", done: ["contestado","ganho","perdido"].includes(cb.status), active: cb.status === "aberto" },
-                { step: "Contestado", done: ["ganho","perdido"].includes(cb.status),              active: cb.status === "contestado" },
-                { step: "Resultado",  done: ["ganho","perdido"].includes(cb.status),              active: false,
-                  label: cb.status === "ganho" ? "Ganho ✓" : cb.status === "perdido" ? "Perdido ✗" : "Resultado" },
-              ].map((t, i, arr) => (
-                <div key={t.step} className="flex items-start gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                      style={{
-                        background: t.done ? "var(--green)" : t.active ? "var(--blue)" : "var(--border)",
-                        border: t.active ? "2px solid var(--blue)" : "none",
-                      }}>
-                      {t.done && <div className="w-2 h-2 rounded-full bg-white" />}
-                      {t.active && <div className="w-2 h-2 rounded-full bg-white animate-pulse" />}
-                    </div>
-                    {i < arr.length - 1 && (
-                      <div className="w-0.5 h-5 mt-0.5"
-                        style={{ background: t.done ? "var(--green)" : "var(--border)" }} />
-                    )}
-                  </div>
-                  <p className="text-xs pb-4 font-medium" style={{
-                    color: t.done ? "var(--green)" : t.active ? "var(--blue)" : "var(--muted)",
-                    marginTop: 2,
-                  }}>
-                    {t.label ?? t.step}
-                  </p>
-                </div>
-              ))}
+          {/* Prazo urgente */}
+          {cb.status === "aberto" && cb.prazo <= 3 && cb.prazo > 0 && (
+            <div className="flex items-center gap-2 p-3 rounded-xl text-xs"
+              style={{ background: "var(--red-dim)", border: "1px solid rgba(220,38,38,0.2)", color: "var(--red)" }}>
+              <AlertTriangle size={13} />
+              Apenas {cb.prazo} {cb.prazo === 1 ? "dia" : "dias"} para contestar!
             </div>
-          </div>
+          )}
 
+          {/* Descrição */}
           {cb.descricao && (
-            <div className="p-3 rounded-lg text-xs leading-relaxed"
-              style={{ background: "var(--blue-dim)", border: "1px solid rgba(37,99,235,0.15)", color: "var(--text-2)" }}>
+            <div className="p-3 rounded-xl text-xs leading-relaxed"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)" }}>
               {cb.descricao}
             </div>
           )}
+
+          {/* Ação */}
+          {cb.status === "aberto" && (
+            <button onClick={() => { onContest(cb); onClose(); }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all"
+              style={{ background: "var(--blue)", color: "#fff" }}>
+              <ShieldCheck size={14} /> Contestar este chargeback
+            </button>
+          )}
         </div>
-        <div className="px-5 py-4 flex gap-3" style={{ borderTop: "1px solid var(--border)" }}>
+        <div className="px-5 pb-5">
           <button onClick={onClose}
-            className="flex-1 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all"
-            style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>Fechar</button>
-          <a href={`https://${cb.adquirente === "PagSeguro" ? "pagseguro" : "mercadopago"}.com.br`}
-            target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 flex-1 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all"
-            style={{ background: "var(--blue)", color: "#fff" }}>
-            <ExternalLink size={13} /> Ver no {cb.adquirente}
-          </a>
+            className="w-full py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition-all"
+            style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+            Fechar
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Modal de Contestar ── */
-function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
-  const { toast } = useToast();
-  const [step, setStep] = useState<1|2>(1);
-  const [docs, setDocs] = useState<string[]>([]);
+/* ─── Modal de contestação ──────────────────────────────── */
+function ContestModal({ cb, onClose, onSubmit }: {
+  cb: CB; onClose: () => void; onSubmit: (cbId: string, msg: string) => Promise<void>;
+}) {
+  const [msg,    setMsg]    = useState("");
+  const [saving, setSaving] = useState(false);
+  const [done,   setDone]   = useState(false);
 
-  const checklist = [
-    { id: "nf",      label: "Nota fiscal ou comprovante de venda" },
-    { id: "entrega", label: "Comprovante de entrega (rastreio, assinatura)" },
-    { id: "email",   label: "E-mails ou mensagens trocadas com o cliente" },
-    { id: "contrato",label: "Contrato ou termo de serviço aceito pelo cliente" },
-  ];
-
-  function toggle(id: string) {
-    setDocs(prev => prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]);
-  }
-
-  function handleSubmit() {
-    toast(`Contestação de ${cb.id} enviada! Prazo de resposta: 10 dias úteis.`);
-    onClose();
+  async function submit() {
+    if (!msg.trim()) return;
+    setSaving(true);
+    await onSubmit(cb.id, msg);
+    setSaving(false);
+    setDone(true);
+    setTimeout(onClose, 1800);
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      style={{ background: "rgba(15,23,42,0.45)", backdropFilter: "blur(4px)" }}
-      onClick={onClose}>
-      <div role="dialog" aria-modal="true" aria-label="Contestar chargeback" className="card w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
+      style={{ background: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)" }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div role="dialog" aria-modal="true" aria-label="Contestar chargeback"
+        className="card w-full max-w-md shadow-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-2">
-            <AlertTriangle size={16} style={{ color: "var(--red)" }} />
+            <ShieldCheck size={15} style={{ color: "var(--blue)" }} />
             <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Contestar Chargeback</p>
           </div>
-          <button onClick={onClose} aria-label="Fechar" className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
-            <X size={15} style={{ color: "var(--muted)" }} />
+          <button onClick={onClose} aria-label="Fechar" className="p-1.5 rounded-lg hover:bg-gray-100"
+            style={{ color: "var(--muted)" }}>
+            <X size={15} />
           </button>
         </div>
 
-        {step === 1 ? (
-          <div className="px-5 py-4 space-y-4">
-            <div className="p-3 rounded-lg text-xs"
-              style={{ background: "var(--amber-dim)", border: "1px solid rgba(217,119,6,0.25)", color: "var(--amber)" }}>
-              <strong>{cb.id}</strong> — {cb.motivo} · {brl(cb.valor)} · {cb.prazo} {cb.prazo !== 1 ? "dias" : "dia"} restante{cb.prazo !== 1 ? "s" : ""}
+        {done ? (
+          <div className="px-5 py-10 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center"
+              style={{ background: "var(--green-dim)" }}>
+              <CheckCircle size={22} style={{ color: "var(--green)" }} />
             </div>
-            <div>
-              <p className="text-xs font-semibold mb-3" style={{ color: "var(--text)" }}>
-                Selecione os documentos que você possui para contestação:
-              </p>
-              <div className="space-y-2">
-                {checklist.map(item => (
-                  <label key={item.id}
-                    className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors"
-                    style={{
-                      background: docs.includes(item.id) ? "var(--blue-dim)" : "var(--surface-2)",
-                      border:     `1px solid ${docs.includes(item.id) ? "rgba(37,99,235,0.3)" : "var(--border)"}`,
-                    }}>
-                    <input type="checkbox" checked={docs.includes(item.id)} onChange={() => toggle(item.id)}
-                      className="w-4 h-4 accent-blue-600" />
-                    <span className="text-xs" style={{ color: "var(--text)" }}>{item.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={onClose}
-                className="flex-1 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all"
-                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>Cancelar</button>
-              <button onClick={() => setStep(2)} disabled={docs.length === 0}
-                className="flex-1 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-40"
-                style={{ background: "var(--blue)", color: "#fff" }}>Continuar</button>
-            </div>
+            <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>Contestação enviada!</p>
+            <p className="text-xs text-center" style={{ color: "var(--muted)" }}>
+              Sua contestação foi registrada. O adquirente irá analisar em até 10 dias úteis.
+            </p>
           </div>
         ) : (
           <div className="px-5 py-4 space-y-4">
-            <div className="p-4 rounded-xl text-xs space-y-2"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-              <p className="font-semibold mb-3" style={{ color: "var(--text)" }}>Próximos passos:</p>
-              {[
-                `Acesse o painel de ${cb.adquirente} e localize o chargeback ${cb.id}.`,
-                "Faça o upload dos documentos selecionados na etapa anterior.",
-                "Preencha o formulário de contestação com os dados da venda.",
-                `Aguarde a resposta do adquirente (prazo padrão: 10 dias úteis).`,
-              ].map((s, i) => (
-                <div key={i} className="flex gap-2.5 items-start">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5"
-                    style={{ background: "var(--blue)", color: "#fff" }}>{i+1}</span>
-                  <p style={{ color: "var(--text-2)" }}>{s}</p>
-                </div>
-              ))}
+            <div className="p-3 rounded-xl text-xs"
+              style={{ background: "var(--blue-dim)", border: "1px solid var(--blue-mid)", color: "var(--blue)" }}>
+              <p className="font-semibold mb-0.5">{cb.externalId} — {brl(cb.valor)}</p>
+              <p>{cb.motivo} · {cb.adquirente}</p>
             </div>
-            <div className="text-xs p-3 rounded-lg"
-              style={{ background: "var(--red-dim)", border: "1px solid rgba(220,38,38,0.25)", color: "var(--red)" }}>
-              Você possui <strong>{docs.length}</strong> documento{docs.length !== 1 ? "s" : ""} selecionado{docs.length !== 1 ? "s" : ""}. Reúna todos antes de iniciar.
+
+            <div>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: "var(--text-2)" }}>
+                Argumentação para contestação
+              </label>
+              <textarea
+                className="input-base resize-none"
+                style={{ minHeight: 100 }}
+                placeholder="Descreva os comprovantes de entrega, evidências de autenticação, ou qualquer argumento que prove a legitimidade da transação…"
+                value={msg}
+                onChange={e => setMsg(e.target.value)}
+              />
             </div>
+
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)}
+              <button onClick={onClose} disabled={saving}
                 className="flex-1 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all"
-                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>Voltar</button>
-              <button onClick={handleSubmit}
-                className="flex-1 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all"
-                style={{ background: "var(--blue)", color: "#fff" }}>Registrar contestação</button>
+                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+                Cancelar
+              </button>
+              <button onClick={submit} disabled={saving || !msg.trim()}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60"
+                style={{ background: "var(--blue)", color: "#fff" }}>
+                {saving ? <><Loader2 size={14} className="animate-spin" /> Enviando…</> : "Enviar contestação"}
+              </button>
             </div>
           </div>
         )}
@@ -249,295 +255,343 @@ function ContestarModal({ cb, onClose }: { cb: CB; onClose: () => void }) {
   );
 }
 
-/* ── CSV export ── */
-function exportChargebacksCSV(rows: CB[]) {
-  const header = ["ID","Data","Cliente","Adquirente","Motivo","Valor (R$)","Prazo (dias)","Status"];
-  const statusLabel: Record<CBStatus,string> = { aberto:"Aberto", contestado:"Contestado", ganho:"Ganho", perdido:"Perdido" };
-  const lines = rows.map(r => [
-    r.id, r.data, r.cliente, r.adquirente, r.motivo,
-    r.valor.toFixed(2).replace(".",","), r.prazo, statusLabel[r.status],
-  ].join(";"));
-  const csv = [header.join(";"), ...lines].join("\n");
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href = url; a.download = "chargebacks.csv"; a.click();
-  URL.revokeObjectURL(url);
+/* ─── Empty state ───────────────────────────────────────── */
+function EmptyState({ onSeed, seeding }: { onSeed: () => void; seeding: boolean }) {
+  return (
+    <div className="card p-12 flex flex-col items-center text-center">
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: "var(--green-dim)", color: "var(--green)" }}>
+        <ShieldCheck size={24} />
+      </div>
+      <p className="text-base font-semibold mb-2" style={{ color: "var(--text)" }}>
+        Nenhum chargeback registrado
+      </p>
+      <p className="text-sm mb-6 max-w-xs" style={{ color: "var(--muted)" }}>
+        Os chargebacks serão exibidos aqui automaticamente quando os adquirentes os reportarem.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Link href="/dashboard/integracoes"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all"
+          style={{ background: "var(--blue)", color: "#fff" }}>
+          Conectar adquirente
+        </Link>
+        <button onClick={onSeed} disabled={seeding}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-all disabled:opacity-60"
+          style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+          {seeding ? <><Loader2 size={14} className="animate-spin" /> Carregando…</> : <><Zap size={14} /> Dados de demonstração</>}
+        </button>
+      </div>
+    </div>
+  );
 }
 
-/* ── Página principal ── */
+/* ─── Página principal ──────────────────────────────────── */
 export default function ChargebacksPage() {
   const { toast } = useToast();
-  const [filter,   setFilter]    = useState<CBStatus|"all">("all");
-  const [search,   setSearch]    = useState("");
-  const [page,     setPage]      = useState(1);
-  const [sortKey,  setSortKey]   = useState<keyof CB | null>("data");
-  const [sortDir,  setSortDir]   = useState<"asc"|"desc">("desc");
-  const [detalhes, setDetalhes]  = useState<CB|null>(null);
-  const [contestar,setContestar] = useState<CB|null>(null);
-  const searchRef   = useRef<HTMLInputElement>(null);
-  const filteredRef = useRef<CB[]>([]);
 
-  // ⌘F / / focuses search; ⌘E exports
+  const [allCBs,      setAllCBs]      = useState<CB[]>([]);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [seeding,     setSeeding]     = useState(false);
+
+  const [search,   setSearch]   = useState("");
+  const [filter,   setFilter]   = useState<CBStatus | "all">("all");
+  const [page,     setPage]     = useState(1);
+  const [detalhes, setDetalhes] = useState<CB | null>(null);
+  const [contest,  setContest]  = useState<CB | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  /* ── Carrega chargebacks ── */
+  const load = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("chargebacks")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    setAllCBs((data ?? []).map(mapCB));
+    setPageLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  /* ── Seed ── */
+  async function handleSeed() {
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/seed", { method: "POST" });
+      if (!res.ok) throw new Error();
+      await load();
+      toast("Dados de demonstração carregados!");
+    } catch {
+      toast("Erro ao carregar dados.", "error");
+    }
+    setSeeding(false);
+  }
+
+  /* ── Contestar ── */
+  async function handleContest(cbId: string, msg: string) {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("chargebacks")
+      .update({
+        status:   "contestado",
+        metadata: { contestacao: msg, contestado_em: new Date().toISOString() },
+      })
+      .eq("id", cbId);
+
+    if (error) {
+      toast("Erro ao registrar contestação.", "error");
+    } else {
+      setAllCBs(prev => prev.map(cb =>
+        cb.id === cbId ? { ...cb, status: "contestado" } : cb
+      ));
+      toast("Contestação registrada com sucesso!");
+    }
+  }
+
+  /* ── Keyboard ── */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (detalhes || contestar) return;
-      if ((e.metaKey || e.ctrlKey) && e.key === "f") { e.preventDefault(); searchRef.current?.focus(); }
-      if ((e.metaKey || e.ctrlKey) && e.key === "e") { e.preventDefault(); exportChargebacksCSV(filteredRef.current); toast("Chargebacks exportados!"); }
-      if (e.key === "/" && (e.target as HTMLElement).tagName !== "INPUT" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+      if (e.key === "/" && !["INPUT","TEXTAREA"].includes((e.target as Element).tagName)) {
         e.preventDefault(); searchRef.current?.focus();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "e") {
+        e.preventDefault(); exportCSV(filtered);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [detalhes, contestar, toast]);
+  });
 
-  function handleSort(key: keyof CB) {
-    if (sortKey === key) setSortDir(d => d === "asc" ? "desc" : "asc");
-    else { setSortKey(key); setSortDir("asc"); }
-    setPage(1);
-  }
-
+  /* ── Filtros ── */
   const filtered = useMemo(() => {
-    const base = cbs.filter(c => {
-      const matchFilter = filter === "all" || c.status === filter;
+    let rows = [...allCBs];
+    if (search.trim()) {
       const q = search.toLowerCase();
-      const matchSearch = !q ||
-        c.cliente.toLowerCase().includes(q) ||
-        c.id.toLowerCase().includes(q) ||
-        c.motivo.toLowerCase().includes(q);
-      return matchFilter && matchSearch;
-    });
-    if (!sortKey) return base;
-    return [...base].sort((a, b) => {
-      const av = a[sortKey]; const bv = b[sortKey];
-      const cmp = typeof av === "number" && typeof bv === "number"
-        ? av - bv
-        : String(av).localeCompare(String(bv), "pt-BR");
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-  }, [filter, search, sortKey, sortDir]);
+      rows = rows.filter(cb =>
+        cb.externalId.toLowerCase().includes(q) ||
+        cb.cliente.toLowerCase().includes(q) ||
+        cb.motivo.toLowerCase().includes(q)
+      );
+    }
+    if (filter !== "all") rows = rows.filter(cb => cb.status === filter);
+    return rows;
+  }, [allCBs, search, filter]);
 
-  filteredRef.current = filtered; // keep ref in sync for keyboard handler
-  const totalPages = Math.max(1,Math.ceil(filtered.length/PAGE_SIZE));
-  const safePage   = Math.min(page,totalPages);
-  const paginated  = filtered.slice((safePage-1)*PAGE_SIZE, safePage*PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const abertos  = cbs.filter(c=>c.status==="aberto");
-  const risk     = abertos.reduce((s,c)=>s+c.valor,0);
-  const done     = cbs.filter(c=>["ganho","perdido"].includes(c.status));
-  const taxa     = done.length?Math.round(cbs.filter(c=>c.status==="ganho").length/done.length*100):0;
-  const urgentes = abertos.filter(c=>c.prazo<=3);
+  /* ── Summary ── */
+  const abertos    = allCBs.filter(c => c.status === "aberto").length;
+  const contestados = allCBs.filter(c => c.status === "contestado").length;
+  const ganhos     = allCBs.filter(c => c.status === "ganho").length;
+  const perdidos   = allCBs.filter(c => c.status === "perdido").length;
+  const emRisco    = allCBs.filter(c => c.status === "aberto").reduce((s, c) => s + c.valor, 0);
+
+  /* ── Skeleton ── */
+  if (pageLoading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <title>Chargebacks | PayScale Intelligence</title>
+        <Topbar title="Chargebacks" subtitle="Gestão de disputas e contestações" />
+        <main className="flex-1 p-5 lg:p-8 space-y-5" style={{ background: "var(--bg)" }}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <div key={i} className="card p-5 animate-pulse h-20" style={{ background: "var(--surface)" }} />)}
+          </div>
+          <div className="card animate-pulse" style={{ height: 300 }} />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
       <title>Chargebacks | PayScale Intelligence</title>
       <Topbar title="Chargebacks" subtitle="Gestão de disputas e contestações" />
-      <main className="flex-1 p-5 lg:p-8 space-y-5" style={{background:"var(--bg)"}}>
 
-        {/* KPIs — clicáveis para filtrar */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <main className="flex-1 p-5 lg:p-8 space-y-5" style={{ background: "var(--bg)" }}>
+
+        {/* Summary */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            {label:"Abertos",        value:String(abertos.length),color:"var(--amber)", filterVal: "aberto"     as CBStatus|"all"},
-            {label:"Valor em Risco", value:brl(risk),            color:"var(--red)",   filterVal: "aberto"     as CBStatus|"all"},
-            {label:"Taxa de Sucesso",value:`${taxa}%`,           color:"var(--green)", filterVal: "ganho"      as CBStatus|"all"},
-            {label:"Total no Mês",   value:String(cbs.length),   color:"var(--text)",  filterVal: "all"        as CBStatus|"all"},
-          ].map(k=>{
-            const isActive = filter === k.filterVal;
-            return (
-              <button key={k.label} onClick={() => { setFilter(k.filterVal); setPage(1); }}
-                className="card p-5 text-left transition-all hover:opacity-80"
-                style={{ outline: isActive ? `2px solid ${k.color}` : "none", outlineOffset: 2 }}>
-                <p className="text-xs font-medium mb-3" style={{color:"var(--muted)"}}>{k.label}</p>
-                <p className="text-2xl font-bold tabular-nums" style={{color:k.color}}>{k.value}</p>
-                {isActive && <p className="text-[10px] mt-1 font-medium" style={{color:k.color}}>Filtro ativo →</p>}
-              </button>
-            );
-          })}
+            { label: "Em aberto",    value: abertos,     color: "var(--amber)", filter: "aberto"     },
+            { label: "Contestados",  value: contestados,  color: "var(--blue)",  filter: "contestado" },
+            { label: "Ganhos",       value: ganhos,       color: "var(--green)", filter: "ganho"      },
+            { label: "Perdidos",     value: perdidos,     color: "var(--red)",   filter: "perdido"    },
+          ].map(s => (
+            <button key={s.label} onClick={() => { setFilter(s.filter as CBStatus | "all"); setPage(1); }}
+              className="card p-5 text-left hover:opacity-90 transition-all"
+              style={{ outline: filter === s.filter ? `2px solid ${s.color}` : "none" }}>
+              <p className="text-2xl font-bold tabular-nums mb-1" style={{ color: s.color }}>{s.value}</p>
+              <p className="text-xs" style={{ color: "var(--muted)" }}>{s.label}</p>
+            </button>
+          ))}
         </div>
 
-        {/* Urgent */}
-        {urgentes.length>0&&(
-          <div className="flex items-start gap-3 p-4 rounded-xl"
-            style={{background:"var(--red-dim)",border:"1px solid rgba(220,38,38,0.25)"}}>
-            <AlertTriangle size={16} className="shrink-0 mt-0.5" style={{color:"var(--red)"}}/>
-            <div>
-              <p className="text-sm font-semibold" style={{color:"var(--red)"}}>Prazo crítico — ação necessária</p>
-              <p className="text-xs mt-0.5" style={{color:"var(--red)"}}>
-                {urgentes.map(c=>`${c.id} (${c.prazo} dia${c.prazo!==1?"s":""} restante${c.prazo!==1?"s":""})`).join(" · ")}
-              </p>
-            </div>
+        {/* Em risco banner */}
+        {emRisco > 0 && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm"
+            style={{ background: "var(--red-dim)", border: "1px solid rgba(220,38,38,0.2)", color: "var(--red)" }}>
+            <AlertTriangle size={15} className="shrink-0" />
+            <span><strong>{brl(emRisco)}</strong> em risco — {abertos} chargeback{abertos !== 1 ? "s" : ""} aguardando contestação.</span>
           </div>
         )}
 
-        {/* Search + Filters */}
-        <div className="space-y-3">
-          {/* Search + Export row */}
-          <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 flex-1"
-            style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px" }}>
-            <Search size={14} style={{ color: "var(--muted)", flexShrink: 0 }} />
-            <input ref={searchRef} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Buscar por cliente, ID ou motivo... (/ ou ⌘F)"
-              aria-label="Buscar chargebacks"
-              className="bg-transparent outline-none text-xs flex-1"
-              style={{ color: "var(--text)" }} />
-            {search && (
-              <button onClick={() => { setSearch(""); setPage(1); }} aria-label="Limpar busca" className="hover:opacity-60 transition-opacity">
-                <X size={13} style={{ color: "var(--muted)" }} />
+        {/* Empty ou tabela */}
+        {allCBs.length === 0 ? (
+          <EmptyState onSeed={handleSeed} seeding={seeding} />
+        ) : (
+          <div className="card overflow-hidden">
+            {/* Toolbar */}
+            <div className="flex items-center gap-3 px-4 py-3"
+              style={{ borderBottom: "1px solid var(--border)" }}>
+              <div className="relative flex-1 max-w-xs">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                  style={{ color: "var(--muted)" }} />
+                <input ref={searchRef}
+                  aria-label="Buscar chargebacks"
+                  className="input-base pl-9 pr-8 text-xs h-9"
+                  placeholder="Buscar ID, cliente ou motivo…"
+                  value={search}
+                  onChange={e => { setSearch(e.target.value); setPage(1); }}
+                />
+                {search && (
+                  <button onClick={() => setSearch("")} aria-label="Limpar busca"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: "var(--muted)" }}>
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              {/* Filtros */}
+              <div className="flex items-center gap-1">
+                {(["all","aberto","contestado","ganho","perdido"] as const).map(f => (
+                  <button key={f}
+                    aria-pressed={filter === f}
+                    onClick={() => { setFilter(f); setPage(1); }}
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
+                    style={{
+                      background: filter === f ? "var(--blue)" : "var(--surface-2)",
+                      color:      filter === f ? "#fff"        : "var(--text-2)",
+                      border:     "1px solid var(--border)",
+                    }}>
+                    {f === "all" ? "Todos" : smap[f].label}
+                  </button>
+                ))}
+              </div>
+
+              <button onClick={() => exportCSV(filtered)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-50 transition-all ml-auto shrink-0"
+                style={{ border: "1px solid var(--border)", color: "var(--text-2)" }}>
+                <Download size={12} /> CSV
               </button>
+            </div>
+
+            {/* Tabela */}
+            {paginated.length === 0 ? (
+              <div className="py-16 text-center">
+                <p className="text-sm" style={{ color: "var(--muted)" }}>Nenhum resultado encontrado.</p>
+              </div>
+            ) : (
+              <div className="divide-y" style={{ borderColor: "var(--border)" }}>
+                {paginated.map(cb => {
+                  const s = smap[cb.status];
+                  return (
+                    <div key={cb.id}
+                      onClick={() => setDetalhes(cb)}
+                      className="flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-gray-50 transition-colors">
+                      {/* Ícone status */}
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                        style={{
+                          background: cb.status === "aberto" ? "var(--amber-dim)" :
+                                      cb.status === "ganho" ? "var(--green-dim)" :
+                                      cb.status === "perdido" ? "var(--red-dim)" : "var(--blue-dim)",
+                          color: cb.status === "aberto" ? "var(--amber)" :
+                                 cb.status === "ganho" ? "var(--green)" :
+                                 cb.status === "perdido" ? "var(--red)" : "var(--blue)",
+                        }}>
+                        {s.icon}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-semibold" style={{ color: "var(--blue)" }}>
+                            {cb.externalId}
+                          </span>
+                          <span className="text-[11px]" style={{ color: "var(--muted)" }}>·</span>
+                          <span className="text-xs truncate" style={{ color: "var(--text)" }}>{cb.cliente}</span>
+                        </div>
+                        <p className="text-[11px] truncate mt-0.5" style={{ color: "var(--muted)" }}>
+                          {cb.adquirente} · {cb.motivo}
+                        </p>
+                      </div>
+
+                      {/* Valor */}
+                      <p className="text-sm font-bold tabular-nums shrink-0" style={{ color: "var(--text)" }}>
+                        {brl(cb.valor)}
+                      </p>
+
+                      {/* Prazo */}
+                      {cb.status === "aberto" && (
+                        <div className="shrink-0 text-right">
+                          {cb.prazo > 0 ? (
+                            <p className="text-xs font-semibold tabular-nums"
+                              style={{ color: cb.prazo <= 3 ? "var(--red)" : "var(--amber)" }}>
+                              {cb.prazo}d
+                            </p>
+                          ) : (
+                            <p className="text-xs" style={{ color: "var(--muted)" }}>Expirado</p>
+                          )}
+                          <p className="text-[10px]" style={{ color: "var(--muted)" }}>prazo</p>
+                        </div>
+                      )}
+
+                      {/* Badge */}
+                      <span className={`badge ${s.cls} gap-1 shrink-0`}>{s.icon}{s.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-          </div>
-          <button
-            onClick={() => { exportChargebacksCSV(filtered); toast("Chargebacks exportados!"); }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold hover:opacity-90 transition-all shrink-0"
-            style={{ background: "var(--blue)", color: "#fff" }}>
-            <Download size={13} /> CSV
-          </button>
-          </div>
 
-          {/* Status filters + sort */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {(["all","aberto","contestado","ganho","perdido"] as const).map(f=>(
-              <button key={f} onClick={()=>{setFilter(f);setPage(1);}}
-                aria-pressed={filter === f}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                style={{
-                  background:filter===f?"var(--blue)":"var(--surface-2)",
-                  color:filter===f?"#fff":"var(--text-2)",
-                  border:"1px solid var(--border)",
-                  boxShadow:filter===f?"none":"0 1px 2px rgba(0,0,0,0.04)",
-                }}>
-                {f==="all"?"Todos":smap[f].label}
-                {f!=="all"&&<span className="ml-1.5 opacity-70">{cbs.filter(c=>c.status===f).length}</span>}
-              </button>
-            ))}
-            <div className="ml-auto flex items-center gap-1.5">
-              <span className="text-xs" style={{ color: "var(--muted)" }}>Ordenar:</span>
-              {([
-                { label: "Data",   key: "data"   as keyof CB },
-                { label: "Valor",  key: "valor"  as keyof CB },
-                { label: "Prazo",  key: "prazo"  as keyof CB },
-              ]).map(s => (
-                <button key={s.key} onClick={() => handleSort(s.key)}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-all"
-                  style={{
-                    background: sortKey === s.key ? "var(--blue-dim)" : "var(--surface-2)",
-                    color:      sortKey === s.key ? "var(--blue)"     : "var(--text-2)",
-                    border:     "1px solid var(--border)",
-                  }}>
-                  {s.label}
-                  {sortKey === s.key && (
-                    <span style={{ fontSize: 10 }}>{sortDir === "asc" ? "↑" : "↓"}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* List */}
-        <div className="card divide-y" style={{borderColor:"var(--border)"}}>
-          {paginated.length === 0 ? (
-            <div className="py-16 flex flex-col items-center gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center"
-                style={{ background: "var(--surface-2)" }}>
-                <ShieldAlert size={20} style={{ color: "var(--muted)" }} />
-              </div>
-              <p className="text-sm font-medium" style={{ color: "var(--text)" }}>Nenhum chargeback encontrado</p>
-              <p className="text-xs" style={{ color: "var(--muted)" }}>
-                {search ? "Tente buscar com outros termos." : "Não há registros para o filtro selecionado."}
-              </p>
-              {(search || filter !== "all") && (
-                <button onClick={() => { setSearch(""); setFilter("all"); setPage(1); }}
-                  className="text-xs px-3 py-1.5 rounded-lg transition-all"
-                  style={{ border: "1px solid var(--border)", color: "var(--blue)" }}>
-                  Limpar filtros
-                </button>
-              )}
-            </div>
-          ) : paginated.map(cb=>{
-            const s=smap[cb.status];
-            return(
-              <div key={cb.id} className="flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{background:"var(--surface-2)",border:"1px solid var(--border)",color:"var(--text-2)"}}>
-                  {cb.id.split("-")[1]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold" style={{color:"var(--text)"}}>{cb.cliente}</span>
-                    <span className={`badge ${cb.adquirente==="PagSeguro"?"badge-amber":"badge-blue"}`}>{cb.adquirente}</span>
-                    <span className={`badge ${s.cls}`}>{s.icon}{s.label}</span>
-                  </div>
-                  <p className="text-xs" style={{color:"var(--text-2)"}}>{cb.motivo}</p>
-                  <p className="text-[11px] mt-0.5" style={{color:"var(--muted)"}}>
-                    {cb.data} · <span className="font-mono">{cb.id}</span>
-                    {cb.status==="aberto"&&(
-                      <span style={{color:cb.prazo<=3?"var(--red)":"var(--amber)",marginLeft:8}}>
-                        <Clock size={10} className="inline mr-1"/>
-                        {cb.prazo} dia{cb.prazo!==1?"s":""} para contestar
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="text-right">
-                    <p className="text-sm font-bold tabular-nums" style={{color:"var(--text)"}}>{brl(cb.valor)}</p>
-                    <p className="text-[11px]" style={{color:"var(--muted)"}}>em disputa</p>
-                  </div>
-                  <div className="flex gap-2">
-                    {cb.status==="aberto"&&(
-                      <button onClick={() => setContestar(cb)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
-                        style={{background:"var(--blue)",color:"#fff"}}>Contestar</button>
-                    )}
-                    <button onClick={() => setDetalhes(cb)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gray-50 transition-all"
-                      style={{border:"1px solid var(--border)",color:"var(--text-2)"}}>Detalhes</button>
-                  </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3"
+                style={{ borderTop: "1px solid var(--border)" }}>
+                <p className="text-xs" style={{ color: "var(--muted)" }}>
+                  {filtered.length} resultado{filtered.length !== 1 ? "s" : ""} · página {page} de {totalPages}
+                </p>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                    aria-label="Página anterior"
+                    className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+                    style={{ color: "var(--text-2)" }}>
+                    <ChevronLeft size={15} />
+                  </button>
+                  <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                    aria-label="Próxima página"
+                    className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-40"
+                    style={{ color: "var(--text-2)" }}>
+                    <ChevronRight size={15} />
+                  </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Pagination */}
-        {totalPages>1&&(
-          <div className="flex items-center justify-between">
-            <p className="text-xs" style={{color:"var(--muted)"}}>
-              {filtered.length} resultado{filtered.length!==1?"s":""} · página {safePage} de {totalPages}
-            </p>
-            <div className="flex items-center gap-1">
-              <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={safePage===1}
-                aria-label="Página anterior"
-                className="p-1.5 rounded-lg border transition-all disabled:opacity-30"
-                style={{borderColor:"var(--border)",color:"var(--text-2)"}}>
-                <ChevronLeft size={14}/>
-              </button>
-              {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
-                <button key={n} onClick={()=>setPage(n)}
-                  className="w-7 h-7 rounded-lg text-xs font-medium transition-all"
-                  style={{
-                    background:safePage===n?"var(--blue)":"transparent",
-                    color:safePage===n?"#fff":"var(--text-2)",
-                    border:safePage===n?"none":"1px solid var(--border)",
-                  }}>{n}</button>
-              ))}
-              <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={safePage===totalPages}
-                aria-label="Próxima página"
-                className="p-1.5 rounded-lg border transition-all disabled:opacity-30"
-                style={{borderColor:"var(--border)",color:"var(--text-2)"}}>
-                <ChevronRight size={14}/>
-              </button>
-            </div>
+            )}
           </div>
         )}
       </main>
 
-      {/* Modals */}
-      {detalhes  && <DetalhesModal   cb={detalhes}   onClose={() => setDetalhes(null)}   />}
-      {contestar && <ContestarModal  cb={contestar}  onClose={() => { setContestar(null); toast("Para finalizar, acesse o painel do adquirente.", "info"); }} />}
+      {detalhes && (
+        <DetalhesModal cb={detalhes} onClose={() => setDetalhes(null)} onContest={cb => setContest(cb)} />
+      )}
+      {contest && (
+        <ContestModal cb={contest} onClose={() => setContest(null)} onSubmit={handleContest} />
+      )}
     </div>
   );
 }

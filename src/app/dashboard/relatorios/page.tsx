@@ -1,57 +1,97 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Topbar from "@/components/Topbar";
 import { Download, FileText, TrendingUp, AlertTriangle, ShieldAlert, BarChart3, Mail, X as XIcon, Plus, Trash2, Printer } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { createClient } from "@/lib/supabase/client";
+import type { Transaction, Chargeback } from "@/lib/supabase/types";
 
-/* ── Gerador de CSV mock ── */
-function buildCSV(id: string, month: string): string {
-  const bom = "﻿";
-  if (id === "conciliacao") {
-    const header = "ID;Data;Descrição;Adquirente;Tipo;Valor Bruto;Tarifa;Líquido;Status";
-    const rows = [
-      `TRX-001;03/${month.slice(-2)}/2026;Venda Débito;PagSeguro;débito;1200,00;14,40;1185,60;Conciliado`,
-      `TRX-002;05/${month.slice(-2)}/2026;Venda Crédito 1x;Mercado Pago;crédito;850,00;21,25;828,75;Conciliado`,
-      `TRX-003;08/${month.slice(-2)}/2026;Venda PIX;PagSeguro;pix;620,00;6,14;613,86;Pendente`,
-    ];
-    return bom + [header, ...rows].join("\n");
-  }
-  if (id === "mdr") {
-    const header = "Modalidade;MDR Contratado (%);MDR Cobrado (%);Desvio (%);Status";
-    const rows = [
-      "Débito;1,20;1,20;0,00;OK",
-      "Crédito 1x;2,50;2,50;0,00;OK",
-      "Crédito 2x;2,80;3,10;0,30;Indevida",
-      "Crédito 12x;3,80;4,10;0,30;Indevida",
-      "PIX;0,99;0,99;0,00;OK",
-    ];
-    return bom + [header, ...rows].join("\n");
-  }
-  if (id === "chargebacks") {
-    const header = "ID;Data;Cliente;Adquirente;Motivo;Valor;Status";
-    const rows = [
-      "CB-001;20/05/2026;Carlos M. Santos;Mercado Pago;Não reconhece a compra;450,00;Aberto",
-      "CB-002;18/05/2026;Ana Paula Lima;PagSeguro;Produto não entregue;1200,00;Contestado",
-      "CB-003;15/05/2026;João R. Costa;Mercado Pago;Cobrança duplicada;380,00;Ganho",
-    ];
-    return bom + [header, ...rows].join("\n");
-  }
-  // saude
-  const header = "Semana;Volume Total;Receita Líquida;MDR Efetivo (%)";
-  const rows = [
-    "Semana 18;120400,00;116300,00;3,41",
-    "Semana 19;98700,00;95200,00;3,54",
-    "Semana 20;134200,00;129800,00;3,28",
-  ];
+const MODALITY_LABEL: Record<string, string> = {
+  debito: "Débito", credito_1x: "Crédito 1x", credito_2x: "Crédito 2x",
+  credito_3x: "Crédito 3x", credito_6x: "Crédito 6x", credito_12x: "Crédito 12x",
+  pix: "PIX", boleto: "Boleto",
+};
+const PROVIDER_LABEL: Record<string, string> = {
+  pagseguro: "PagSeguro", mercadopago: "Mercado Pago", stone: "Stone", cielo: "Cielo",
+};
+const STATUS_LABEL: Record<string, string> = {
+  settled: "Conciliado", divergent: "Divergência", no_settlement: "Sem liquidação", pending: "Pendente",
+};
+const CB_STATUS_LABEL: Record<string, string> = {
+  aberto: "Aberto", contestado: "Contestado", ganho: "Ganho", perdido: "Perdido",
+};
+
+const fmt2 = (n: number) => n.toFixed(2).replace(".", ",");
+const bom  = "﻿";
+
+/* ── Geradores de CSV reais ── */
+function buildConciliacaoCSV(txns: Transaction[]): string {
+  const header = "ID;Data;Descrição;Adquirente;Modalidade;Valor Bruto;Tarifa (R$);Líquido;Status;Observação";
+  const rows = txns.map(t => {
+    const fee = t.mdr_charged != null
+      ? Number(t.amount) * Number(t.mdr_charged) / 100
+      : Number(t.amount) - Number(t.net_amount ?? t.amount);
+    return [
+      t.external_id,
+      t.date,
+      `"${(t.metadata as Record<string,string>)?.descricao ?? t.external_id}"`,
+      PROVIDER_LABEL[t.provider] ?? t.provider,
+      MODALITY_LABEL[t.modality ?? ""] ?? (t.modality ?? "—"),
+      fmt2(Number(t.amount)),
+      fmt2(fee),
+      fmt2(Number(t.net_amount ?? t.amount)),
+      STATUS_LABEL[t.status] ?? t.status,
+      `"${(t.metadata as Record<string,string>)?.observacao ?? ""}"`,
+    ].join(";");
+  });
   return bom + [header, ...rows].join("\n");
 }
 
-function downloadCSV(id: string, month: string, filename: string) {
-  const csv  = buildCSV(id, month);
+function buildMdrCSV(txns: Transaction[]): string {
+  const map: Record<string, { rates: number[]; charged: number[]; vol: number }> = {};
+  txns.forEach(t => {
+    const key = t.modality ?? "outros";
+    if (!map[key]) map[key] = { rates: [], charged: [], vol: 0 };
+    if (t.mdr_rate)    map[key].rates.push(Number(t.mdr_rate));
+    if (t.mdr_charged) map[key].charged.push(Number(t.mdr_charged));
+    map[key].vol += Number(t.amount);
+  });
+  const header = "Modalidade;Volume (R$);MDR Contratado (%);MDR Cobrado (%);Desvio (%);Status";
+  const rows = Object.entries(map).map(([key, v]) => {
+    const avgC = v.rates.length    ? v.rates.reduce((a,b)=>a+b)/v.rates.length       : 0;
+    const avgR = v.charged.length  ? v.charged.reduce((a,b)=>a+b)/v.charged.length   : 0;
+    const dev  = Math.max(0, avgR - avgC);
+    return [
+      MODALITY_LABEL[key] ?? key,
+      fmt2(v.vol),
+      fmt2(avgC),
+      fmt2(avgR),
+      dev > 0 ? `+${fmt2(dev)}` : "0,00",
+      dev === 0 ? "OK" : "Indevida",
+    ].join(";");
+  });
+  return bom + [header, ...rows].join("\n");
+}
+
+function buildChargebacksCSV(cbs: Chargeback[]): string {
+  const header = "ID;Data;Cliente;Adquirente;Motivo;Valor;Prazo (dias);Status";
+  const rows = cbs.map(cb => [
+    cb.external_id ?? cb.id.slice(0, 8),
+    cb.opened_at ?? cb.created_at.slice(0, 10),
+    `"${cb.customer_name ?? "—"}"`,
+    PROVIDER_LABEL[cb.provider] ?? cb.provider,
+    `"${cb.reason ?? "—"}"`,
+    fmt2(Number(cb.amount)),
+    cb.deadline_days ?? 0,
+    CB_STATUS_LABEL[cb.status] ?? cb.status,
+  ].join(";"));
+  return bom + [header, ...rows].join("\n");
+}
+
+function triggerDownload(csv: string, filename: string) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
+  const a    = document.createElement("a"); a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
 }
 
@@ -208,20 +248,61 @@ function EmailConfigModal({ onClose, onSave }: { onClose: () => void; onSave: (c
 export default function RelatoriosPage() {
   const { toast } = useToast();
   const [emailModal, setEmailModal] = useState(false);
+  const [txns, setTxns] = useState<Transaction[]>([]);
+  const [cbs,  setCbs]  = useState<Chargeback[]>([]);
 
-  const [months, setMonths] = useState<Record<string, string>>({
-    conciliacao: "Maio 2026",
-    mdr:         "Maio 2026",
-    chargebacks: "Maio 2026",
-    saude:       "Maio 2026",
-  });
+  const load = useCallback(async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const [txRes, cbRes] = await Promise.all([
+      supabase.from("transactions").select("*").eq("user_id", user.id),
+      supabase.from("chargebacks").select("*").eq("user_id", user.id),
+    ]);
+    setTxns((txRes.data ?? []) as Transaction[]);
+    setCbs((cbRes.data ?? []) as Chargeback[]);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const now = new Date();
+  const monthLabel = now.toLocaleString("pt-BR", { month: "long", year: "numeric" })
+    .replace(/^\w/, c => c.toUpperCase());
 
   function handleExport(id: string, title: string) {
-    const month = months[id] ?? "Maio 2026";
-    const slug  = month.toLowerCase().replace(" ", "_");
-    downloadCSV(id, month, `${id}_${slug}.csv`);
+    let csv = "";
+    const slug = `${id}_${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,"0")}`;
+    if (id === "conciliacao") csv = buildConciliacaoCSV(txns);
+    else if (id === "mdr")    csv = buildMdrCSV(txns);
+    else if (id === "chargebacks") csv = buildChargebacksCSV(cbs);
+    else {
+      // Saúde financeira — agrega por semana
+      const header = "Semana;Volume Total;Receita Líquida;MDR Efetivo (%)";
+      const weekMap: Record<number, { vol: number; net: number; fees: number; n: number }> = {};
+      txns.forEach(t => {
+        const wk = Math.ceil(new Date(t.date).getDate() / 7);
+        if (!weekMap[wk]) weekMap[wk] = { vol: 0, net: 0, fees: 0, n: 0 };
+        weekMap[wk].vol += Number(t.amount);
+        weekMap[wk].net += Number(t.net_amount ?? t.amount);
+        if (t.mdr_charged) { weekMap[wk].fees += Number(t.mdr_charged); weekMap[wk].n++; }
+      });
+      const rows = Object.entries(weekMap).map(([wk, v]) => [
+        `Semana ${wk}`,
+        fmt2(v.vol),
+        fmt2(v.net),
+        v.n > 0 ? fmt2(v.fees / v.n) : "0,00",
+      ].join(";"));
+      csv = bom + [header, ...rows].join("\n");
+    }
+    if (!csv) { toast("Sem dados para exportar. Conecte um adquirente primeiro.", "info"); return; }
+    triggerDownload(csv, `${slug}.csv`);
     toast(`${title} exportado com sucesso!`);
   }
+
+  const months = {
+    conciliacao: monthLabel, mdr: monthLabel,
+    chargebacks: monthLabel, saude: monthLabel,
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -253,14 +334,10 @@ export default function RelatoriosPage() {
                   <p className="text-xs" style={{color:"var(--muted)"}}>Último: {r.ultima}</p>
                   <span className="badge badge-blue">{r.tipo}</span>
                   <div className="flex gap-2 ml-auto">
-                    <select
-                      aria-label={`Período — ${r.title}`}
-                      className="input-base text-xs py-1.5 pl-2 pr-7"
-                      style={{width:"auto",color:"var(--text-2)"}}
-                      value={months[r.id]}
-                      onChange={e => setMonths(prev => ({ ...prev, [r.id]: e.target.value }))}>
-                      <option>Maio 2026</option><option>Abril 2026</option><option>Março 2026</option>
-                    </select>
+                    <span className="text-xs px-2 py-1 rounded-lg"
+                      style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--muted)" }}>
+                      {months[r.id as keyof typeof months]}
+                    </span>
                     <button
                       onClick={() => handleExport(r.id, r.title)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-all"
@@ -305,10 +382,7 @@ export default function RelatoriosPage() {
                               : r.name.toLowerCase().includes("mdr") ? "mdr"
                               : r.name.toLowerCase().includes("chargeback") ? "chargebacks"
                               : "saude";
-                            const month = r.name.match(/— (.+)$/)?.[1] ?? "Maio 2026";
-                            const slug  = month.toLowerCase().replace(" ", "_").replace("/","_");
-                            downloadCSV(id, month, `${id}_${slug}.csv`);
-                            toast(`${r.name} baixado!`);
+                            handleExport(id, r.name);
                           }}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium hover:bg-gray-50 transition-all"
                           style={{border:"1px solid var(--border)",color:"var(--blue)"}}>

@@ -1,20 +1,31 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Bell, Search, Menu, LogOut, User, Settings, AlertTriangle, TrendingDown, ShieldAlert, CheckCircle } from "lucide-react";
+import { Bell, Search, Menu, LogOut, User, Settings, AlertTriangle, ShieldAlert } from "lucide-react";
 import { useSidebar } from "@/context/SidebarContext";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import type { Alert } from "@/lib/supabase/types";
 
 interface Props { title: string; subtitle?: string; }
 
-const NOTIFS = [
-  { id: 1, icon: <AlertTriangle size={13} />, color: "var(--red)",   text: "Tarifa MDR acima do contratado — Crédito 12x (+0,3%)", val: "−R$ 1.240", time: "Hoje, 09:14", href: "/dashboard/tarifas",    read: false },
-  { id: 2, icon: <TrendingDown size={13} />,  color: "var(--red)",   text: "12 transações sem liquidação detectadas",             val: "−R$ 8.750", time: "Hoje, 08:02", href: "/dashboard/conciliacao", read: false },
-  { id: 3, icon: <ShieldAlert size={13} />,   color: "var(--amber)", text: "Chargeback CB-001 com prazo em 3 dias",              val: "R$ 450",    time: "Ontem, 16:30",href: "/dashboard/chargebacks", read: false },
-  { id: 4, icon: <AlertTriangle size={13} />, color: "var(--amber)", text: "Tarifa MDR acima do contratado — Crédito 2x (+0,3%)",val: "−R$ 380",   time: "Ontem, 11:45",href: "/dashboard/tarifas",    read: true  },
-  { id: 5, icon: <CheckCircle size={13} />,   color: "var(--green)", text: "Chargeback CB-003 — contestação aprovada",           val: "R$ 380",    time: "20/05, 14:20",href: "/dashboard/chargebacks", read: true  },
-];
+const ALERT_HREF: Record<string, string> = {
+  mdr_deviation:       "/dashboard/tarifas",
+  no_settlement:       "/dashboard/conciliacao",
+  chargeback_deadline: "/dashboard/chargebacks",
+};
+
+function alertColor(severity: string) {
+  if (severity === "critical") return "var(--red)";
+  if (severity === "warning")  return "var(--amber)";
+  return "var(--blue)";
+}
+
+function alertIcon(type: string, severity: string) {
+  const color = alertColor(severity);
+  if (type === "chargeback_deadline") return <ShieldAlert size={13} style={{ color }} />;
+  return <AlertTriangle size={13} style={{ color }} />;
+}
 
 export default function Topbar({ title, subtitle }: Props) {
   const { toggle }  = useSidebar();
@@ -25,31 +36,43 @@ export default function Topbar({ title, subtitle }: Props) {
   const [notifOpen,  setNotifOpen]  = useState(false);
   const [userEmail,  setUserEmail]  = useState<string | null>(null);
   const [userName,   setUserName]   = useState<string | null>(null);
+  const [alerts,     setAlerts]     = useState<Alert[]>([]);
 
-  // Persist read notification IDs in localStorage
-  const [readIds, setReadIds] = useState<number[]>(() => {
-    if (typeof window === "undefined") return [4, 5];
+  // IDs de alertas marcados como lidos no localStorage
+  const [readIds, setReadIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
     try {
-      const saved = localStorage.getItem("notif_read");
-      return saved ? JSON.parse(saved) : [4, 5];
-    } catch { return [4, 5]; }
+      const saved = localStorage.getItem("notif_read_v2");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
   });
 
-  function markRead(ids: number[]) {
+  function markRead(ids: string[]) {
     setReadIds(ids);
-    try { localStorage.setItem("notif_read", JSON.stringify(ids)); } catch { /* noop */ }
+    try { localStorage.setItem("notif_read_v2", JSON.stringify(ids)); } catch { /* noop */ }
   }
 
   const menuRef  = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setUserEmail(user.email ?? null);
-        setUserName(user.user_metadata?.full_name ?? null);
-      }
-    });
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setUserEmail(user.email ?? null);
+      setUserName(user.user_metadata?.full_name ?? null);
+
+      // Carrega alertas não resolvidos do Supabase
+      const { data } = await supabase
+        .from("alerts")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("resolved", false)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (data) setAlerts(data as Alert[]);
+    }
+    load();
   }, []);
 
   useEffect(() => {
@@ -71,9 +94,9 @@ export default function Topbar({ title, subtitle }: Props) {
     router.refresh();
   }
 
-  function markAllRead() { markRead(NOTIFS.map(n => n.id)); }
+  function markAllRead() { markRead(alerts.map(a => a.id)); }
 
-  const unread = NOTIFS.filter(n => !readIds.includes(n.id)).length;
+  const unread = alerts.filter(a => !readIds.includes(a.id)).length;
   const initials = userName
     ? userName.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()
     : userEmail?.[0]?.toUpperCase() ?? "U";
@@ -128,7 +151,11 @@ export default function Topbar({ title, subtitle }: Props) {
               <div className="flex items-center justify-between px-4 py-3"
                 style={{ borderBottom: "1px solid var(--border)" }}>
                 <p className="text-xs font-semibold" style={{ color: "var(--text)" }}>
-                  Notificações {unread > 0 && <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: "var(--red)", color: "#fff" }}>{unread}</span>}
+                  Notificações{" "}
+                  {unread > 0 && (
+                    <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px]"
+                      style={{ background: "var(--red)", color: "#fff" }}>{unread}</span>
+                  )}
                 </p>
                 {unread > 0 && (
                   <button onClick={markAllRead} className="text-[11px] hover:underline" style={{ color: "var(--blue)" }}>
@@ -137,19 +164,31 @@ export default function Topbar({ title, subtitle }: Props) {
                 )}
               </div>
               <div className="max-h-72 overflow-y-auto">
-                {NOTIFS.map(n => {
-                  const isRead = readIds.includes(n.id);
+                {alerts.length === 0 ? (
+                  <div className="px-4 py-6 text-center">
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>Nenhum alerta ativo.</p>
+                  </div>
+                ) : alerts.map(a => {
+                  const isRead = readIds.includes(a.id);
+                  const href   = (a.metadata as Record<string,string>)?.href ?? ALERT_HREF[a.type] ?? "/dashboard";
+                  const color  = alertColor(a.severity);
+                  const dt     = new Date(a.created_at);
+                  const timeStr = dt.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
                   return (
-                    <Link key={n.id} href={n.href}
-                      onClick={() => { markRead([...new Set([...readIds, n.id])]); setNotifOpen(false); }}
+                    <Link key={a.id} href={href}
+                      onClick={() => { markRead([...new Set([...readIds, a.id])]); setNotifOpen(false); }}
                       className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
                       style={{ borderBottom: "1px solid var(--border)", opacity: isRead ? 0.55 : 1 }}>
-                      <div className="mt-0.5 shrink-0" style={{ color: n.color }}>{n.icon}</div>
+                      <div className="mt-0.5 shrink-0">{alertIcon(a.type, a.severity)}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs leading-snug" style={{ color: "var(--text)" }}>{n.text}</p>
+                        <p className="text-xs leading-snug" style={{ color: "var(--text)" }}>{a.title}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] font-semibold tabular-nums" style={{ color: n.color }}>{n.val}</span>
-                          <span className="text-[10px]" style={{ color: "var(--muted)" }}>{n.time}</span>
+                          {a.amount != null && (
+                            <span className="text-[10px] font-semibold tabular-nums" style={{ color }}>
+                              −{Number(a.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                            </span>
+                          )}
+                          <span className="text-[10px]" style={{ color: "var(--muted)" }}>{timeStr}</span>
                         </div>
                       </div>
                       {!isRead && <span className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" style={{ background: "var(--blue)" }} />}
