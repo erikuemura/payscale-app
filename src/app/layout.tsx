@@ -25,20 +25,15 @@ export const viewport: Viewport = {
 
 /* ── Metadata base ── */
 export const metadata: Metadata = {
-  metadataBase: new URL("https://payscale-app.vercel.app"),
+  metadataBase: new URL("https://www.payscale.com.br"),
 
   title: {
-    default:  "PayScale Intelligence — Conciliação Financeira e Auditoria de Tarifas MDR",
-    template: "%s | PayScale Intelligence",
+    default:  "PayScale — Gestão de pagamentos e recebíveis",
+    template: "%s | PayScale",
   },
   description:
-    "Concilie vendas, audite tarifas MDR e gerencie chargebacks de PagSeguro, Mercado Pago, Stone e Cielo — tudo automaticamente. Teste grátis por 14 dias.",
-  keywords: [
-    "conciliação financeira", "auditoria MDR", "chargeback", "PagSeguro",
-    "Mercado Pago", "conciliação de pagamentos", "tarifa MDR", "fintech",
-    "gestão financeira", "conciliação automática", "Stone", "Cielo",
-  ],
-  authors:  [{ name: "PayScale Intelligence", url: "https://payscale-app.vercel.app" }],
+    "Conciliação de recebíveis e apoio em taxas, parcelamento e chargebacks para e-commerce, lojas físicas e empresas.",
+  authors:  [{ name: "PayScale Intelligence", url: "https://www.payscale.com.br" }],
   creator:  "PayScale Intelligence",
   publisher:"PayScale Intelligence",
 
@@ -51,12 +46,12 @@ export const metadata: Metadata = {
   openGraph: {
     type:        "website",
     locale:      "pt_BR",
-    url:         "https://payscale-app.vercel.app",
+    url:         "https://www.payscale.com.br",
     siteName:    "PayScale Intelligence",
-    title:       "PayScale Intelligence — Conciliação Financeira e Auditoria de Tarifas MDR",
-    description: "Concilie vendas, audite tarifas MDR e gerencie chargebacks de PagSeguro, Mercado Pago, Stone e Cielo — tudo automaticamente. Teste grátis por 14 dias.",
+    title:       "PayScale — Gestão de pagamentos e recebíveis",
+    description: "Conciliação de recebíveis e apoio em taxas, parcelamento e chargebacks para e-commerce, lojas físicas e empresas.",
     images: [{
-      url:    "/og-image.png",
+      url:    "/opengraph-image",
       width:  1200,
       height: 630,
       alt:    "PayScale Intelligence — Conciliação Financeira",
@@ -65,14 +60,12 @@ export const metadata: Metadata = {
 
   twitter: {
     card:        "summary_large_image",
-    title:       "PayScale Intelligence — Conciliação Financeira e Auditoria de Tarifas MDR",
-    description: "Concilie vendas, audite tarifas MDR e gerencie chargebacks automaticamente. Teste grátis por 14 dias.",
-    images:      ["/og-image.png"],
+    title:       "PayScale — Gestão de pagamentos e recebíveis",
+    description: "Conheça a conciliação por arquivos e o apoio à gestão de pagamentos para sua empresa.",
+    images:      ["/opengraph-image"],
   },
 
-  alternates: {
-    canonical: "https://payscale-app.vercel.app",
-  },
+
 };
 
 export default function RootLayout({
@@ -83,6 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       {/* eslint-disable-next-line @next/next/no-sync-scripts */}

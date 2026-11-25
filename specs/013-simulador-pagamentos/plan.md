@@ -1,0 +1,1 @@
+Função pura em lib/payments com cálculo em centavos e testes dos exemplos do PRD. Página pública beta no navegador com três cenários comparáveis, detalhes e premissas. Links na home e conciliador. Nenhuma escrita externa ou dado de cliente.

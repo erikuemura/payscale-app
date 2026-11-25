@@ -1,0 +1,4 @@
+- [x] Especificação antes da implementação.
+- [x] Metadata e comunicação.
+- [x] Validação de HTML e navegação.
+- [x] Publicação.

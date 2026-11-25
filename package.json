@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --test src/lib/reconciliation/*.test.ts src/lib/payments/*.test.ts src/lib/disputes/*.test.ts src/lib/contact/*.test.ts src/lib/auth/*.test.ts src/lib/launch/*.test.ts",
+    "test:db": "node scripts/test-workspace-db.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -23,6 +25,7 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.17",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

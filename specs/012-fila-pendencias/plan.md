@@ -1,0 +1,1 @@
+Modelo puro de tarefas e atualização validada; componente isolado montado somente quando houver resultados. Estado local desmonta ao limpar/importar/reconfirmar. Formulários acessíveis com rótulos por referência; export JSON; testes de regras e navegador. Sem banco e sem automação financeira.

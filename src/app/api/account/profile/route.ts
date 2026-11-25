@@ -1,0 +1,4 @@
+import {body,failure,json,sameOrigin,session} from '@/lib/launch/http';
+import {profile} from '@/lib/launch/contracts';
+export async function GET(){try{const c=await session();if(c.error)return c.error;const {data,error}=await c.db.from('profiles').select('full_name,company,segment').eq('id',c.user.id).single();return error?failure('profile_read'):json({profile:data});}catch{return failure('profile_read');}}
+export async function PATCH(r:Request){if(!sameOrigin(r))return json({error:'Origem não permitida.'},403);try{const c=await session();if(c.error)return c.error;let value;try{value=profile(await body(r,4096));}catch(e){return json({error:e instanceof Error?e.message:'Envio inválido.'},400);}const {data,error}=await c.db.from('profiles').update(value).eq('id',c.user.id).select('full_name,company,segment').single();return error?failure('profile_save'):json({profile:data});}catch{return failure('profile_save');}}

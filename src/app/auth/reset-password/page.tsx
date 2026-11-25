@@ -58,7 +58,7 @@ function RequestReset() {
           Enviamos o link de recuperação para <strong style={{ color: "var(--text)" }}>{email}</strong>.
           Verifique sua caixa de entrada.
         </p>
-        <Link href="/" className="text-sm font-semibold hover:underline" style={{ color: "var(--blue)" }}>
+        <Link href="/login" className="text-sm font-semibold hover:underline" style={{ color: "var(--blue)" }}>
           Voltar ao login
         </Link>
       </div>
@@ -91,7 +91,7 @@ function RequestReset() {
         </button>
       </form>
       <p className="text-center text-xs mt-8" style={{ color: "var(--muted)" }}>
-        <Link href="/" className="font-semibold hover:underline" style={{ color: "var(--blue)" }}>
+        <Link href="/login" className="font-semibold hover:underline" style={{ color: "var(--blue)" }}>
           Voltar ao login
         </Link>
       </p>
@@ -119,7 +119,7 @@ function UpdatePassword() {
     setLoading(false);
     if (error) { setError(error.message); return; }
     setDone(true);
-    setTimeout(() => { window.location.href = "/?message=password_updated"; }, 2000);
+    setTimeout(() => { window.location.href = "/login?message=password_updated"; }, 2000);
   }
 
   if (done) {

@@ -1,0 +1,3 @@
+2026-11-06:28 testes aprovados, TypeScript e lint dos arquivos novos aprovados. Navegador: exemplo de serviço mostra exposição200 e lacunas de execução/pagamento; fonte vazia bloqueia preparação; troca de modalidade limpa evidências. Exportação TXT validada quanto ao conteúdo por teste unitário; download ponta a ponta não verificado. Sem upload, autenticação de evidências ou persistência.
+
+Publicada em 06/11/2026: deployment dpl_78rJP7kf6v35S5ijs1SDgwfqqUPT (código 8cce3d2). HTTP 200 antes da promoção; domínio https://www.payscale.com.br/passaporte-venda verificado no navegador após promoção. Exemplo de serviço confirmou exposição de R$ 200,00, lacunas de execução/pagamento e prazo ausente sem estimativa. Captura: outputs/passaporte-producao.png no workspace pai.

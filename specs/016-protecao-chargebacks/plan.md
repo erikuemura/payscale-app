@@ -1,0 +1,2 @@
+# Plano
+Pesquisa concluída com fontes primárias; preparar diagnóstico e plano preventivo como primeira fatia de S05. Implementação exige especificação própria dos campos e regras. Persistência exige ambiente de teste e isolamento de duas contas. Integrações externas somente após acesso autorizado e sandbox/homologação. Não anunciar cobertura, parceria ou envio operacional por mera existência de documentação pública.

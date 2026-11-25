@@ -154,3 +154,16 @@ create index if not exists idx_chargebacks_user_status
 
 create index if not exists idx_alerts_user_resolved
   on public.alerts (user_id, resolved, created_at desc);
+
+-- 006a is an additive, not-yet-applied extension. Apply after the baseline:
+-- migrations/20261104130656_reconciliation_history.sql
+-- Tables: reconciliation_companies, reconciliation_accounts, reconciliation_runs.
+-- Keep RECONCILIATION_HISTORY_ENABLED unset until integration/RLS tests pass.
+
+-- 021/024 additive extension (NOT YET APPLIED):
+-- migrations/20261120023437_launch_workspaces.sql
+-- dispute_preparations: id, owner_id, case_id, name, payload, revision, created_at, updated_at.
+-- dispute_tracking: case_id, owner_id, responsible, deadline_at, deadline_source, revision, created_at, updated_at.
+-- commercial_requests: id, owner_id, offer, notes, status, created_at.
+-- Private Storage bucket dispute-evidence. No public URLs, updates or deletes.
+-- DISPUTE_WORKSPACE_ENABLED and COMMERCIAL_REQUESTS_ENABLED remain false until integrated A/B validation.

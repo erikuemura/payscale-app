@@ -1,0 +1,5 @@
+- [x] Especificar escopo
+- [x] Motor e testes
+- [x] Interface e navegação
+- [x] Testes, build e publicação verificados
+- [ ] Confirmar download TXT ponta a ponta (conteúdo testado; evento não confirmado pelo navegador)

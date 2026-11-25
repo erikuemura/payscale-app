@@ -1,0 +1,3 @@
+2026-11-06: suíte25 testes aprovada, TypeScript e lint direcionado aprovados. Navegador reproduziu Pix270,20/cartão260/parcelado220 no exemplo, alerta de piso, margem ausente em três cenários. Mobile390px sem overflow (documento385px). Não há taxas de mercado, IA, escrita externa ou política aplicada. Build remoto e promoção pendentes.
+
+Produção: ecba6c4, dpl_DQ2qyVqiC41RCE91amNqdWp9krBx, READY, build32s. HTTP200 com conteúdo correto antes de promoção. Domínio www.payscale.com.br/simular-pagamentos validado no navegador, exemplo retornou270,20. Captura outputs/simulador-producao.png. Observabilidade: smoke test de página/cálculo; logs de runtime e monitoramento contínuo não auditados nesta entrega.

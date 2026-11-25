@@ -1,0 +1,4 @@
+- [x] Regras e testes
+- [x] Interface e exportação
+- [x] Validação local
+- [x] Publicação

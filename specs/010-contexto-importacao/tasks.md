@@ -1,0 +1,4 @@
+- [x] Importar PRD e pacote SDD.
+- [x] Delimitar fatia e pendências.
+- [x] Implementar contexto e mensagens.
+- [x] Testar e publicar.

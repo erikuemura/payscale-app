@@ -1,0 +1,1 @@
+Alias admin resolve exclusivamente para email sintético, com senha validada pelo Supabase normal. Banner identifica demonstração por email autenticado, sem conceder privilégios. Dados inseridos via sessão da nova conta e RLS existente, sem executar seed genérico ou alterar usuários atuais. Histórico segue desativado.

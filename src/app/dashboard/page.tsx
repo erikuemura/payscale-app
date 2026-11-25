@@ -202,20 +202,20 @@ function DashboardContent({ data }: { data: DashboardData }) {
       label: "Volume Total",
       value: brl(data.totalVolume),
       sub:   connectedIntgs.map(i => PROVIDER_LABEL[i.provider] ?? i.provider).join(" + ") || "Todas as integrações",
-      trend: data.totalVolume > 0 ? "+12%" : "—",
+      trend: "—",
       up: true,
     },
     {
       label: "Tarifas Pagas (MDR)",
       value: brl(data.totalFees),
       sub:   "sobre todo o volume",
-      trend: data.totalFees > 0 ? "−2%" : "—",
+      trend: "—",
       up: false,
     },
     {
-      label: "Cobranças Indevidas",
+      label: "Diferenças para revisão",
       value: brl(data.savings),
-      sub:   "MDR acima do contratado",
+      sub:   "MDR acima da referência cadastrada",
       trend: data.savings > 0 ? "Detectado" : "—",
       up: data.savings === 0,
     },
@@ -249,6 +249,7 @@ function DashboardContent({ data }: { data: DashboardData }) {
       <Topbar title="Visão Geral" subtitle={subtitle} />
       <main className="flex-1 p-5 lg:p-8 space-y-5" style={{ background: "var(--bg)" }}>
 
+        <Link href="/dashboard/operacao" className="card block p-5" style={{ color: "var(--blue)" }}>Central de trabalho → Conciliar arquivos, conferir taxas, simular pagamentos e preparar evidências</Link>
         {/* KPIs */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {kpis.map(k => (
@@ -631,7 +632,7 @@ export default function DashboardPage() {
       .eq("user_id", user.id);
 
     const connected = (intgs ?? []).filter(i => i.status === "connected");
-    if (connected.length === 0) { setViewState("onboarding"); return; }
+    if (connected.length === 0 && user.email !== "demo-admin@payscale.invalid") { setViewState("onboarding"); return; }
 
     /* Carrega dados em paralelo */
     const [txResult, cbResult, altResult] = await Promise.all([

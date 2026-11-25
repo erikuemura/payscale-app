@@ -1,0 +1,4 @@
+- [x] Modelo e validações
+- [x] Formulário e exportação
+- [x] Testes locais e navegador
+- [x] Publicação e verificação no domínio oficial

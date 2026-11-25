@@ -1,0 +1,14 @@
+# Status — 25/11/2026
+- [x] Regras de acesso e contratos + testes locais
+- [x] Persistência021: migração, API e interface implementadas, desligadas
+- [x] Financeiro: cálculo agregado e tela de tarifas
+- [ ] Alinhar visão geral e relatórios legados ao cálculo revisado
+- [x] Onboarding e perfil implementados
+- [x] Acompanhamento de casos e documentos privados implementados, desligados
+- [x] Modalidades comerciais e solicitações implementadas, persistência desligada
+- [x] Saúde, logs e procedimento de recuperação
+- [x] Testes unitários, PostgreSQL isolado e restauração sintética
+- [ ] Supabase desenvolvimento: Auth/Data API/Storage com A/B
+- [ ] Homologação visual dos novos fluxos
+- [ ] Backup gerenciado, arquivos e alerta operacional reais
+- [ ] Publicação024 em produção após validação
