@@ -1,0 +1,4 @@
+id;data;valor;referencia;empresa;conta;provedor;canal;moeda
+BANCO-001;2026-11-04;150,00;REPASSE-01;EMPRESA-EXEMPLO;CONTA-EXEMPLO;Banco exemplo;Conta bancaria;BRL
+BANCO-002;2026-11-04;195,00;REPASSE-02;EMPRESA-EXEMPLO;CONTA-EXEMPLO;Banco exemplo;Conta bancaria;BRL
+BANCO-003;2026-11-05;40,00;OUTRO-REPASSE;EMPRESA-EXEMPLO;CONTA-EXEMPLO;Banco exemplo;Conta bancaria;BRL

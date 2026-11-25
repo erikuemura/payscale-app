@@ -1,0 +1,4 @@
+- [x] Especificar
+- [x] Implementar central e ajustes de confiança
+- [x] Validar localmente e no navegador
+- [x] Publicar e registrar evidências

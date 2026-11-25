@@ -1,0 +1,6 @@
+- [x] Especificar salvamento, concorrência, idempotência e isolamento
+- [ ] Disponibilizar ambiente de desenvolvimento autorizado
+- [ ] Inspecionar schema, implementar migração e API
+- [ ] Integrar salvamento/listagem/restauração na interface
+- [ ] Testar API e Data API com duas contas
+- [ ] Publicar e ativar após verificação

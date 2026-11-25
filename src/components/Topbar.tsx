@@ -90,7 +90,7 @@ export default function Topbar({ title, subtitle }: Props) {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/login");
     router.refresh();
   }
 

@@ -1,0 +1,1 @@
+Página temporária /passaporte-venda com validação pura em lib/disputes, formulário acessível e exportação TXT. Link na área de chargebacks. Testes sobre lacunas, parcialidade e prazos; navegador/mobile e publicação. Não altera schema nem decisão financeira.

@@ -1,0 +1,6 @@
+# Validação — 16/11/2026
+52 testes Node passaram (5 novos para contrato de contato). TypeScript e lint escopado aprovados. Testes usam mocks; nenhum e-mail real enviado. Casos: origem inválida, configuração ausente, payload excessivo, destinatário injetado, email com quebra de linha, honeypot, tipo inválido, hostname/action incorretos, erro/timeout do provedor, recibo ausente e aceitação/idempotência.
+
+HTTP local: contato e três soluções200 com canonical absoluto correto; sitemap200; API contato desativada503; seed410. Navegador mostra contato confirmado e links mailto com assunto/corpo; nenhuma transmissão efetuada. Dev server exigiu permissão para porta local e iniciou após autorização. Nenhuma migração, chave, credencial, serviço pago ou configuração de email alterada.
+
+Não validado: entrega real, indexação Google, Search Console, WhatsApp, persistência/RLS em duas contas. Build Vercel aprovado:36 rotas,38s. Commit68f6ac3 publicado no deployment dpl_8G2s8iJivb8172MqRMAZ3v7wQMUx. Contato e solução de chargebacks retornaram200 antes de promover. Domínio oficial conferido no navegador: contato com destinatário correto e assuntos; captura ../contato-seo-producao.png. Teste mobile390x844 em contato e solução de conciliação: width385/scroll385, sem transbordamento. Backend do SaaS não considerado concluído; pendências em PRONTIDAO.md.

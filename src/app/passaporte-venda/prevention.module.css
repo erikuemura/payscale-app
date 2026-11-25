@@ -1,0 +1,1 @@
+.printReport{display:none}@media print{.copyReport{display:none!important}.printReport{display:block;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11pt;line-height:1.4}}

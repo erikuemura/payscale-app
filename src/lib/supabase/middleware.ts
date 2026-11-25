@@ -33,13 +33,13 @@ export async function updateSession(request: NextRequest) {
   // Rotas protegidas: redireciona para login se não autenticado
   if (!user && pathname.startsWith("/dashboard")) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/";
+    loginUrl.pathname = "/login";
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   // Já autenticado tentando acessar login/signup — redireciona ao dashboard
-  if (user && (pathname === "/" || pathname === "/login" || pathname === "/signup")) {
+  if (user && (pathname === "/login" || pathname === "/signup")) {
     const dashUrl = request.nextUrl.clone();
     dashUrl.pathname = "/dashboard";
     return NextResponse.redirect(dashUrl);

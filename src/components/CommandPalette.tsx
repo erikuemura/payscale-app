@@ -35,19 +35,24 @@ export default function CommandPalette() {
   async function handleLogout() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/login");
     router.refresh();
     close();
   }
 
   const commands: Cmd[] = [
     /* Navigation */
+    { id:"operacao", label:"Central de trabalho", description:"Escolher uma rotina", icon:<LayoutDashboard size={15}/>, action:()=>go("/dashboard/operacao"), group:"Navegar" },
+    { id:"simulador", label:"Simular pagamentos", description:"Parcelamento, Pix e antecipação", icon:<Percent size={15}/>, action:()=>go("/dashboard/simulador"), group:"Navegar", keywords:"margem credito parcelas" },
+    { id:"auditoria", label:"Conferir taxas", description:"Comparar contrato e cobrança", icon:<Percent size={15}/>, action:()=>go("/dashboard/auditoria"), group:"Navegar" },
+    { id:"prevencao", label:"Prevenir chargebacks", description:"Organizar provas e plano preventivo", icon:<ShieldAlert size={15}/>, action:()=>go("/dashboard/prevencao"), group:"Navegar" },
+    { id:"importacoes", label:"Importar arquivos", description:"Conciliar recebíveis e extrato", icon:<ArrowLeftRight size={15}/>, action:()=>go("/dashboard/importacoes"), group:"Navegar" },
     { id:"dashboard",    label:"Visão Geral",         description:"Resumo do painel",                   icon:<LayoutDashboard size={15}/>, action:()=>go("/dashboard"),              group:"Navegar",  keywords:"home inicio overview" },
-    { id:"integracoes",  label:"Integrações",          description:"Conectar adquirentes",               icon:<Link2 size={15}/>,           action:()=>go("/dashboard/integracoes"), group:"Navegar",  keywords:"pagbank stone cielo mercado" },
+    { id:"integracoes",  label:"Integrações",          description:"Consultar configuração de provedores",               icon:<Link2 size={15}/>,           action:()=>go("/dashboard/integracoes"), group:"Navegar",  keywords:"pagbank stone cielo mercado" },
     { id:"conciliacao",  label:"Conciliação",           description:"Conferir transações",                icon:<ArrowLeftRight size={15}/>,  action:()=>go("/dashboard/conciliacao"),group:"Navegar",  keywords:"transacoes vendas liquidacao" },
     { id:"tarifas",      label:"Tarifas & MDR",         description:"Auditoria de tarifas",               icon:<Percent size={15}/>,         action:()=>go("/dashboard/tarifas"),    group:"Navegar",  keywords:"mdr taxa cobrança" },
     { id:"chargebacks",  label:"Chargebacks",           description:"Disputas e contestações",            icon:<ShieldAlert size={15}/>,     action:()=>go("/dashboard/chargebacks"),group:"Navegar",  keywords:"disputa contestacao reembolso" },
-    { id:"relatorios",   label:"Relatórios",            description:"Exportar e agendar relatórios",      icon:<BarChart3 size={15}/>,       action:()=>go("/dashboard/relatorios"), group:"Navegar",  keywords:"export csv relatorio" },
+    { id:"relatorios",   label:"Relatórios",            description:"Consultar e exportar relatórios",      icon:<BarChart3 size={15}/>,       action:()=>go("/dashboard/relatorios"), group:"Navegar",  keywords:"export csv relatorio" },
     { id:"config",       label:"Configurações",         description:"Perfil e preferências",              icon:<Settings size={15}/>,        action:()=>go("/dashboard/configuracoes"),group:"Navegar",keywords:"perfil senha conta" },
     { id:"site",         label:"Site institucional",    description:"Ver site público",                   icon:<Globe size={15}/>,           action:()=>go("/site"),                 group:"Navegar",  keywords:"landing page publico" },
     /* Actions */
@@ -75,7 +80,6 @@ export default function CommandPalette() {
   // Flat index for keyboard navigation
   const flat = filtered;
 
-  useEffect(() => { setActive(0); }, [query]);
 
   // G+letter navigation shortcuts (GitHub-style)
   const G_NAV: Record<string, string> = {
@@ -160,13 +164,13 @@ export default function CommandPalette() {
           <input
             ref={inputRef}
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={e => { setQuery(e.target.value); setActive(0); }}
             placeholder="Buscar páginas e ações..."
             className="flex-1 bg-transparent text-sm outline-none"
             style={{ color: "var(--text)" }}
           />
           {query && (
-            <button onClick={() => setQuery("")} aria-label="Limpar busca" style={{ color: "var(--muted)" }}>
+            <button onClick={() => { setQuery(""); setActive(0); }} aria-label="Limpar busca" style={{ color: "var(--muted)" }}>
               <X size={14} />
             </button>
           )}
@@ -178,7 +182,7 @@ export default function CommandPalette() {
         <div ref={listRef} className="max-h-80 overflow-y-auto py-2">
           {flat.length === 0 ? (
             <p className="text-sm text-center py-8" style={{ color: "var(--muted)" }}>
-              Nenhum resultado para "{query}"
+              Nenhum resultado para &quot;{query}&quot;
             </p>
           ) : (
             groups.map(group => {

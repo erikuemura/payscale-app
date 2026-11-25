@@ -1,11 +1,3 @@
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title:       "Criar conta gratuita",
-  description: "Crie sua conta no PayScale Intelligence e comece seu período gratuito de 14 dias. Sem cartão de crédito.",
-  alternates:  { canonical: "https://payscale-app.vercel.app/signup" },
-};
-
-export default function SignupLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+import type { Metadata } from 'next';
+export const metadata:Metadata={title:'Participar do piloto assistido',description:'Solicite uma avaliação acompanhada da PayScale. Cadastro automático fechado durante o piloto.',alternates:{canonical:'https://www.payscale.com.br/signup'},robots:{index:false,follow:true}};
+export default function SignupLayout({children}:{children:React.ReactNode}){return <>{children}</>;}

@@ -1,0 +1,8 @@
+# Validação — 11/11/2026
+47 testes passaram. Quatro novos testes cobrem round-trip parcial, versões/tipos/chaves inválidas, tamanho e texto, proteção contra arquivo de outra referência/provedor. TypeScript e lint escopado aprovados.
+
+Browser local autenticado demo: arquivo fictício TESTE-RETOMADA mostra revisão antes de aplicar; cancelar preserva MANTER; confirmar restaura referência e valor contestado200. Solicitação de download acionada, conteúdo validado pelo round-trip automatizado; arquivo efetivamente gravado pelo navegador não inspecionado. Dados originais e diagnóstico não incluídos, como indicado na interface. Sem schema, SQL, RLS ou contas modificadas.
+
+Supabase lista apenas produção, sem branches. Duas solicitações de criação de branch chargeback-drafts-dev retornaram confirmação expirada, sem recurso criado confirmado. Persistência em conta não implementada/ativada nesta entrega. Requisito local AGENTS.md: “valide mudanças de RLS com duas contas em ambiente de teste”. Aprovação de custo é exigida pelo conector create_branch; não foi inferida da autorização genérica de desenvolvimento.
+
+Build Vercel aprovado (31 rotas, 30s), commit 5ed3346, deployment dpl_FRkd9rcTdPtXyBP4CvyyavKSoSMS. Smoke staged: passaporte público200, prevenção sem sessão307. Promovido ao domínio oficial. Browser autenticado em www.payscale.com.br/dashboard/prevencao restaurou TESTE-RETOMADA, serviço, exposição200 e fonte de contratação; após timeout de leitura Playwright, árvore de acessibilidade confirmou o estado completo. Captura ../retomar-preparacao-producao.png. Mobile390x844: width385/scroll385; arquivo incompatível com caso selecionado rejeitado mantendo a preparação. Logs agregados não auditados.

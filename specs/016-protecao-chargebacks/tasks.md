@@ -1,0 +1,7 @@
+- [x] Pesquisar soluções e limites em fontes primárias
+- [x] Definir catálogo proposto e prioridades
+- [x] Definir requisitos e critérios de aceitação
+- [x] Implementar primeira fatia do diagnóstico e plano preventivo (017, temporário)
+- [ ] Validar persistência isolada e documentos privados
+- [ ] Homologar primeiro conector
+- [ ] Cotar e qualificar parceiros

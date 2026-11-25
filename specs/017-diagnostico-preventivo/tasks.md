@@ -1,0 +1,5 @@
+- [x] Especificação
+- [x] Motor e testes
+- [x] Interface e integração
+- [x] Testes, navegador e publicação
+- [ ] Verificação do arquivo final de impressão/PDF (diálogo nativo; relatório em tela validado)

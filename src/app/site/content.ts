@@ -1,0 +1,24 @@
+export const services = [
+  { title: "Conciliação de recebíveis", text: "Cruze recebíveis e extrato para identificar repasses, diferenças e valores pendentes de revisão.", outcome: "Comece agora com arquivos CSV.", status: "Ferramenta disponível", href: "/conciliar", action: "Experimentar conciliador" },
+  { title: "Estratégia de parcelamento", text: "Avalie número de parcelas, ticket, margem e prazo de recebimento para desenhar condições adequadas à sua operação.", outcome: "Uma política de venda com o caixa em vista.", status: "Avaliação consultiva" },
+  { title: "Taxas e condições comerciais", text: "Organize taxas por modalidade e provedor. Compare contratos, tarifas e prazos para preparar uma negociação com contexto.", outcome: "Clareza sobre o custo de receber.", status: "Avaliação consultiva" },
+  { title: "Antecipação de recebíveis", text: "Avalie o custo total, o valor líquido e o calendário de recebimento antes de decidir antecipar.", outcome: "Compare o caixa de hoje com os recebimentos futuros.", status: "Avaliação consultiva" },
+  { title: "Gestão de riscos", text: "Revise etapas de pagamento, atendimento e entrega para identificar pontos de atenção e orientar a rotina da equipe.", outcome: "Boas práticas do checkout ao pós-venda.", status: "Avaliação consultiva" },
+  { title: "Chargebacks e evidências", text: "Organize pedido, comunicação e comprovantes de entrega ou prestação de serviço para apoiar a análise de uma disputa.", outcome: "Evidências contextualizadas, com prazos em vista.", status: "Avaliação consultiva" },
+];
+export const audiences = [
+  { title: "E-commerce", label: "DO CHECKOUT À ENTREGA", text: "Parcelamento, gateways, repasses e pós-venda. Conecte as decisões de pagamento à margem e à experiência do cliente." },
+  { title: "Lojas físicas e POS", label: "DO BALCÃO AO CAIXA", text: "Condições das maquininhas, modalidades de venda e comprovantes. Mais organização para conferir o que cada canal recebe." },
+  { title: "Empresas e serviços", label: "DO CONTRATO AO RECEBIMENTO", text: "Cobranças, pagamentos e comprovação do serviço. Estruture a rotina financeira de acordo com os canais da sua empresa." },
+];
+export const faqs = [
+  { question: "Como participar do piloto assistido?", answer: "Entre em contato para combinar uma demonstração com exemplos fictícios. O cadastro por formulário está fechado. Escopo, disponibilidade e eventuais condições comerciais são alinhados antes de contratar. A operação com dados reais depende das validações de acesso e persistência ainda pendentes." },
+  { question: "A PayScale atende apenas e-commerce?", answer: "A proposta inclui e-commerces, lojas físicas com POS e empresas de serviços. O diagnóstico considera os canais, os provedores e as condições de pagamento de cada operação." },
+  { question: "O que já posso usar no site?", answer: "Você pode experimentar a conciliação por CSV, a auditoria de taxas por venda, o simulador de pagamentos e a preparação de evidências. A análise CSV ocorre no navegador. O salvamento de histórico e as conexões automáticas ainda não estão habilitados." },
+  { question: "Como funciona o apoio nas outras frentes?", answer: "O primeiro contato serve para avaliar sua necessidade e definir disponibilidade, escopo e condições comerciais. As ferramentas de simulação e preparação apoiam a análise. Negociação de condições, concessão de crédito e envio automático de contestações não estão disponíveis." },
+  { question: "Vocês oferecem crédito ou antecipam recebíveis?", answer: "Não oferecemos crédito nem executamos antecipações nesta etapa. A proposta é apoiar a avaliação de custos, prazos e impacto no caixa. A contratação de uma operação é feita com o provedor escolhido pela empresa." },
+  { question: "O apoio a chargebacks garante a recuperação?", answer: "Não. A organização de evidências ajuda a contextualizar o caso. Os documentos e prazos dependem do motivo da disputa e das regras aplicáveis; a decisão cabe aos participantes do processo. O site não envia defesas automaticamente." },
+  { question: "Quais documentos podem ajudar a comprovar uma entrega?", answer: "Conforme o caso, pedido, nota fiscal, rastreamento, registro de entrega, comunicação com o cliente e aceite do serviço podem compor a análise. Nenhum documento isolado garante a aceitação da defesa. Não envie documentos ou dados de clientes no contato inicial." },
+  { question: "A demonstração calcula parcelamento e antecipação?", answer: "Não. Ela compara apenas a taxa percentual de uma venda. Parcelamento, antecipação, tarifas fixas e estornos exigem regras e dados específicos da operação." },
+  { question: "Quanto custa e como começo?", answer: "As ferramentas demonstrativas são abertas. Para conhecer o apoio consultivo, escolha uma necessidade e entre em contato por e-mail. Escopo, disponibilidade e preço serão definidos antes da contratação. Não é necessário enviar senhas ou chaves de API." },
+];

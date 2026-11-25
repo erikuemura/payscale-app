@@ -1,0 +1,3 @@
+2026-11-06: 21 testes aprovados; TypeScript e lint direcionado aprovados. Navegador: exemplo gera três tarefas; tentativa de encerrar sem justificativa rejeitada; motivo válido deixa duas abertas e uma encerrada, valores preservados; refazer conciliação reinicia três abertas. Mobile 390px sem overflow horizontal (documento 385px). JSON validado em teste unitário; download ponta a ponta não verificado. Revisão React: componentes fora do render, labels, mensagens de status, estado local reiniciado por versão. Publicação pendente.
+
+Produção: commit9774441, dpl_ERvMmqx7qBhTLXuzpE7ioow8sL2Z, READY, build aprovado, HTTP200 /conciliar e promoção concluída.

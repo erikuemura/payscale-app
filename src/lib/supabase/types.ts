@@ -82,3 +82,13 @@ export interface Alert {
   metadata: Record<string, unknown>;
   created_at: string;
 }
+
+/** 006a — schema staged in migrations; enable only after development RLS tests. */
+export interface ReconciliationCompany { id: string; owner_id: string; name: string; created_at: string }
+export interface ReconciliationAccount { id: string; company_id: string; owner_id: string; name: string; currency: 'BRL'; created_at: string }
+export interface ReconciliationRun { id: string; company_id: string; account_id: string; owner_id: string; rule_version: 'referencia-data-v1'; fingerprint: string; inputs: unknown; created_at: string }
+
+/** 021/024 — staged extension, enable only after two-user integration validation. */
+export interface DisputePreparation { id:string; owner_id:string; case_id:string|null; name:string; payload:unknown; revision:number; created_at:string; updated_at:string }
+export interface DisputeTracking { case_id:string; owner_id:string; responsible:string; deadline_at:string; deadline_source:string; revision:number; created_at:string; updated_at:string }
+export interface CommercialRequest { id:string; owner_id:string; offer:'diagnostico'|'acompanhamento'|'chargebacks'; notes:string; status:'solicitado'|'em_analise'|'proposta'|'encerrado'; created_at:string }

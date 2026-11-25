@@ -12,8 +12,8 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("[ErrorBoundary]", error, info.componentStack);
+  componentDidCatch() {
+    console.error("[ErrorBoundary] interface_failure");
   }
 
   render() {
@@ -32,10 +32,10 @@ export default class ErrorBoundary extends React.Component<Props, State> {
             <p className="text-sm" style={{ color: "var(--muted)" }}>
               Ocorreu um erro inesperado ao carregar esta página.
             </p>
-            {this.state.error?.message && (
+            {this.state.hasError && (
               <p className="text-xs mt-2 font-mono px-3 py-2 rounded-lg"
                 style={{ background: "var(--surface-2)", color: "var(--muted)", border: "1px solid var(--border)" }}>
-                {this.state.error.message}
+                Não recarregue antes de guardar o trabalho local, se ainda estiver acessível. Contato: contato@payscale.com.br
               </p>
             )}
           </div>

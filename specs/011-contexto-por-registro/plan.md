@@ -1,0 +1,1 @@
+Extrair leitor CSV compartilhado sem mudar parseCsv legado. Criar parser contextual separado, com validação antes dos totais e comparador entre fontes. Integrar ao Workspace, fornecer modelos e testar regressão, controles e build remoto antes de promover. Sem alterações de banco ou execução financeira.

@@ -11,11 +11,18 @@ import {
 import { useTheme } from "@/context/ThemeContext";
 
 const nav = [
+  { href: "/dashboard/primeiros-passos", icon: Zap, label: "Primeiros passos", badge: null },
+  { href: "/dashboard/contratacao", icon: Globe, label: "Atendimento", badge: null },
+  { href: "/dashboard/operacao", icon: LayoutDashboard, label: "Central de trabalho", badge: null },
+  { href: "/dashboard/simulador", icon: Percent, label: "Simular pagamentos", badge: null },
+  { href: "/dashboard/auditoria", icon: Percent, label: "Conferir taxas", badge: null },
+  { href: "/dashboard/prevencao", icon: ShieldAlert, label: "Prevenir chargebacks", badge: null },
+  { href: "/dashboard/importacoes", icon: ArrowLeftRight, label: "Importar arquivos", badge: null },
   { href: "/dashboard",             icon: LayoutDashboard, label: "Visão Geral",   badge: null                     },
-  { href: "/dashboard/integracoes", icon: Link2,           label: "Integrações",   badge: "live" as const          },
+  { href: "/dashboard/integracoes", icon: Link2,           label: "Integrações",   badge: null          },
   { href: "/dashboard/conciliacao", icon: ArrowLeftRight,  label: "Conciliação",   badge: null                     },
-  { href: "/dashboard/tarifas",     icon: Percent,         label: "Tarifas & MDR", badge: "2" as const             },
-  { href: "/dashboard/chargebacks", icon: ShieldAlert,     label: "Chargebacks",   badge: "5" as const             },
+  { href: "/dashboard/tarifas",     icon: Percent,         label: "Tarifas & MDR", badge: null             },
+  { href: "/dashboard/chargebacks", icon: ShieldAlert,     label: "Chargebacks",   badge: null             },
   { href: "/dashboard/relatorios",  icon: BarChart3,       label: "Relatórios",    badge: null                     },
 ];
 
@@ -79,7 +86,7 @@ export default function Sidebar() {
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/login");
     router.refresh();
   }
 

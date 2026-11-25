@@ -1,0 +1,2 @@
+# Plano
+Motor puro em lib/payments/audit.ts com centavos inteiros e MDR em unidades de 0,0001 ponto percentual. Testes Node para valores/limites/vigência/compensação. Página cliente pública noindex /auditar-taxas com CSS responsivo, exemplo fictício, exportação TXT e resultado invalidado ao editar. Links no rodapé e painel de tarifas. Sem mudança de API, banco ou dependências. Validar testes, TypeScript, lint, build e navegador; publicar build de produção staged e promover após smoke.

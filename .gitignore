@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Modelo sem segredos para preparar o ambiente local
+!.env.example
+
+# Supabase CLI local cache
+supabase/.temp/

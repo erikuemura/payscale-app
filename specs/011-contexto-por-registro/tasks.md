@@ -1,0 +1,4 @@
+- [x] Parser e bloqueios
+- [x] Interface e modelos
+- [x] Testes locais e navegador
+- [x] Publicação

@@ -1,0 +1,2 @@
+# Estado — 11/11/2026
+Somente especificação e plano, sem implementação ou migração. list_branches confirmou nenhum ambiente de desenvolvimento. Nova solicitação create_branch retornou confirmação expirada após dois minutos; não há criação confirmada. Sem autorização de custo, não repetir automaticamente. Alternativa a discutir: ambiente local de desenvolvimento; docker e supabase não estavam disponíveis no PATH na inspeção anterior. Nenhum teste de isolamento executado e nenhum recurso novo publicado.

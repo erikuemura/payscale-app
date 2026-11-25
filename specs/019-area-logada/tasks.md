@@ -1,0 +1,4 @@
+- [x] Inspecionar baseline e especificar entrega e sequência dos módulos
+- [x] Integrar ferramentas e central
+- [x] Corrigir indicadores e navegação
+- [x] Validar e publicar

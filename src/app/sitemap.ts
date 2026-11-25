@@ -1,32 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const BASE = "https://payscale-app.vercel.app";
-
+import { solutions } from './solucoes/content';
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url:              BASE + "/site",
-      lastModified:     new Date(),
-      changeFrequency:  "weekly",
-      priority:         1.0,
-    },
-    {
-      url:              BASE + "/",
-      lastModified:     new Date(),
-      changeFrequency:  "monthly",
-      priority:         0.8,
-    },
-    {
-      url:              BASE + "/signup",
-      lastModified:     new Date(),
-      changeFrequency:  "monthly",
-      priority:         0.7,
-    },
-    {
-      url:              BASE + "/auth/reset-password",
-      lastModified:     new Date(),
-      changeFrequency:  "yearly",
-      priority:         0.3,
-    },
-  ];
+ return [{url:'https://www.payscale.com.br/planos',changeFrequency:'monthly',priority:0.8},{url:'https://www.payscale.com.br/piloto',changeFrequency:'monthly',priority:0.8},{url:'https://www.payscale.com.br',changeFrequency:'monthly',priority:1},{url:'https://www.payscale.com.br/contato',changeFrequency:'monthly',priority:0.8},...Object.keys(solutions).map(slug=>({url:`https://www.payscale.com.br/solucoes/${slug}`,changeFrequency:'monthly' as const,priority:0.8}))];
 }

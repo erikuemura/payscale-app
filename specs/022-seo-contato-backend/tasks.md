@@ -1,0 +1,8 @@
+- [x] Confirmar e-mail comercial com o usuário
+- [x] Implementar páginas de soluções, contato, canonical, links e sitemap
+- [x] Preparar API comercial com validação, antispam e falhas explícitas
+- [x] Desativar carga demonstrativa que podia sobrescrever integrações
+- [x] Testar localmente
+- [x] Publicar e conferir domínio
+- [ ] Ativar formulário web após configurar provedor, widget e verificar entrega
+- [ ] Concluir demais módulos de backend conforme PRONTIDAO.md e SDD021

@@ -1,0 +1,4 @@
+- [x] Motor e testes
+- [x] Interface
+- [x] Validação local
+- [x] Publicação

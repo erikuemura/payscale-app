@@ -1,0 +1,4 @@
+- [x] Especificar escopo e limites
+- [x] Implementar arquivo e controles de retomada
+- [x] Testar e publicar
+- [ ] Persistência em conta (etapa posterior, depende de ambiente e isolamento)
